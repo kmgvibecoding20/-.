@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЦенЭксперт — Портал КП</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#F5F7FA;--card:#FFFFFF;--primary:#1F4E8C;--primary-h:#173D6E;--accent:#E8EFF8;
+  --text:#1E2A3A;--muted:#5F6B7A;--border:#DDE3EA;--head:#F0F3F7;
+  --ok:#1E7F4F;--ok-bg:#E6F4EC;--warn:#B26A00;--warn-bg:#FFF4E0;--err:#C0392B;--err-bg:#FDECEA;
+  --shadow:0 1px 3px rgba(16,24,40,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 Inter,"Segoe UI",Roboto,Arial,sans-serif}
+a{color:var(--primary);text-decoration:none}a:hover{text-decoration:underline}
+h1{font-size:24px;font-weight:600;margin:0}h2{font-size:18px;font-weight:600;margin:0 0 12px}
+.muted{color:var(--muted)}.small{font-size:12px}.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+button,.btn{font:inherit;height:36px;padding:0 14px;border-radius:6px;border:1px solid var(--primary);background:var(--primary);color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap}
+button:hover,.btn:hover{background:var(--primary-h);text-decoration:none}
+button.sec{background:#fff;color:var(--primary)}button.sec:hover{background:var(--accent)}
+button.txt{background:none;border-color:transparent;color:var(--primary);padding:0 8px}button.txt:hover{background:var(--accent)}
+button.danger{background:var(--err);border-color:var(--err)}button.danger:hover{background:#a03023}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.sm{height:28px;padding:0 10px;font-size:12px}
+input,select,textarea{font:inherit;color:var(--text);height:36px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:#fff;width:100%}
+textarea{height:auto;min-height:80px;padding:8px 10px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--primary);outline-offset:-1px}
+input[type=checkbox]{width:16px;height:16px}
+label.f{display:block;margin-bottom:12px}label.f>span{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.err-text{color:var(--err);font-size:12px}
+.card{background:var(--card);border-radius:8px;box-shadow:var(--shadow);padding:20px 24px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.sp{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+/* layout */
+header.top{height:64px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:20}
+.logo{width:36px;height:36px;border-radius:8px;background:var(--primary);color:#fff;font-weight:700;display:grid;place-items:center;flex:none}
+.brand b{display:block;font-size:14px}.brand span{font-size:12px;color:var(--muted)}
+.bell{position:relative;background:none;border:none;color:var(--text);padding:0 8px;font-size:18px}.bell:hover{background:var(--accent)}
+.bell i{position:absolute;top:2px;right:0;background:var(--err);color:#fff;font-size:10px;font-style:normal;border-radius:8px;padding:0 5px;line-height:16px}
+.user{text-align:right;line-height:1.2}.user small{color:var(--muted);display:block}
+.layout{display:flex;min-height:calc(100vh - 64px)}
+nav.side{width:240px;background:#fff;border-right:1px solid var(--border);padding:16px 8px;flex:none}
+nav.side a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;color:var(--text);margin-bottom:2px}
+nav.side a:hover{background:var(--accent);text-decoration:none}nav.side a.on{background:var(--accent);color:var(--primary);font-weight:600}
+nav.side a em{margin-left:auto;font-style:normal;background:var(--err);color:#fff;border-radius:10px;font-size:11px;padding:0 7px}
+nav.topnav{display:flex;gap:4px}nav.topnav a{padding:8px 12px;border-radius:6px;color:var(--text)}nav.topnav a.on{background:var(--accent);color:var(--primary);font-weight:600}
+main{flex:1;min-width:0;padding:24px;max-width:1440px;margin:0 auto;width:100%}
+footer{border-top:1px solid var(--border);padding:16px 24px;color:var(--muted);font-size:12px;background:#fff}
+.page-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+/* tables */
+.tw{overflow:auto;border:1px solid var(--border);border-radius:8px;background:#fff;max-height:70vh}
+table{border-collapse:separate;border-spacing:0;width:100%}
+th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
+th{background:var(--head);font-weight:600;font-size:12px;color:var(--muted);position:sticky;top:0;z-index:2;white-space:nowrap}
+th.sort{cursor:pointer}th.sort:hover{color:var(--primary)}
+tbody tr:hover td{background:var(--accent)}
+tr:last-child td{border-bottom:none}
+tfoot td{background:var(--head);font-weight:600;position:sticky;bottom:0}
+.stick1{position:sticky;left:0;z-index:1;background:#fff}.stick2{position:sticky;left:44px;z-index:1;background:#fff;border-right:1px solid var(--border)}
+th.stick1,th.stick2{z-index:3;background:var(--head)}
+td.min{background:var(--ok-bg)!important;color:var(--ok)}td.max{background:var(--err-bg)!important;color:var(--err)}
+tr.bad td{background:var(--err-bg)}tr.nocat td{background:var(--warn-bg)}
+td input,td select{height:30px}
+/* badges */
+.badge{display:inline-block;border-radius:12px;padding:2px 10px;font-size:12px;font-weight:500;white-space:nowrap}
+.b-gray{background:#EEF1F4;color:#4A5563}.b-blue{background:var(--accent);color:var(--primary)}.b-amber{background:var(--warn-bg);color:var(--warn)}
+.b-green{background:var(--ok-bg);color:var(--ok)}.b-red{background:var(--err-bg);color:var(--err)}
+.new{background:var(--err);color:#fff;border-radius:8px;font-size:10px;padding:1px 6px;margin-left:6px}
+.progress{height:6px;background:var(--head);border-radius:3px;overflow:hidden;width:90px;margin-top:4px}.progress div{height:100%;background:var(--primary)}
+.stat b{font-size:28px;font-weight:600;display:block}.stat span{color:var(--muted);font-size:12px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto}
+.tabs button{background:none;border:none;border-bottom:2px solid transparent;border-radius:0;color:var(--muted);height:40px}
+.tabs button.on{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}.tabs button:hover{background:var(--accent)}
+.steps{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.steps div{flex:1;min-width:140px;padding:10px 12px;border-radius:6px;background:#fff;border:1px solid var(--border);color:var(--muted);font-size:12px}
+.steps div b{display:block;font-size:14px}.steps div.on{border-color:var(--primary);color:var(--primary);background:var(--accent)}.steps div.done{color:var(--ok)}
+.drop{border:2px dashed var(--border);border-radius:8px;padding:36px;text-align:center;background:#fff;cursor:pointer}
+.drop.over{border-color:var(--primary);background:var(--accent)}
+.alert{padding:10px 14px;border-radius:6px;margin-bottom:12px}.a-warn{background:var(--warn-bg);color:var(--warn)}.a-err{background:var(--err-bg);color:var(--err)}.a-ok{background:var(--ok-bg);color:var(--ok)}.a-info{background:var(--accent);color:var(--primary)}
+.menu{position:relative;display:inline-block}.menu ul{position:absolute;right:0;top:100%;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.12);list-style:none;margin:4px 0;padding:4px;z-index:30;min-width:160px}
+.menu li{padding:8px 12px;border-radius:4px;cursor:pointer}.menu li:hover{background:var(--accent)}
+.dropdown{position:absolute;right:0;top:56px;width:340px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(16,24,40,.12);max-height:400px;overflow:auto;z-index:40}
+.dropdown div{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px}.dropdown div.unread{background:var(--accent)}
+/* modal & toast */
+.modal-bg{position:fixed;inset:0;background:rgba(30,42,58,.4);display:grid;place-items:center;z-index:50;padding:16px}
+.modal{background:#fff;border-radius:8px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+.modal .row{justify-content:flex-end;margin-top:16px}
+#toasts{position:fixed;top:76px;right:16px;z-index:60;display:flex;flex-direction:column;gap:8px}
+.toast{background:#fff;border-left:4px solid var(--primary);box-shadow:0 4px 12px rgba(16,24,40,.15);padding:12px 16px;border-radius:6px;min-width:260px;max-width:360px}
+.toast.ok{border-color:var(--ok)}.toast.err{border-color:var(--err)}
+/* login */
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:16px}
+.login{width:100%;max-width:400px}
+.demo{margin-top:16px;font-size:12px;color:var(--muted)}.demo button{margin:4px 4px 0 0}
+.empty{text-align:center;padding:40px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:6px 16px}.kv dt{color:var(--muted)}.kv dd{margin:0}
+.chips span{display:inline-block;background:var(--head);border-radius:12px;padding:1px 8px;font-size:12px;margin:2px 4px 2px 0}
+.mcards{display:none}
+@media (max-width:1279px){nav.side{width:64px}nav.side a span,nav.side a em{display:none}.grid4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:767px){
+  header.top{padding:0 12px;gap:8px}.brand span,.user{display:none}
+  nav.side{display:none}main{padding:16px}.grid2,.grid4{grid-template-columns:1fr}.kv{grid-template-columns:1fr}
+  .desk,nav.topnav{display:none}.mcards{display:block}.brand b{font-size:13px;line-height:1.2}
+  .mcard{background:#fff;border-radius:8px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px}
+  nav.mob{display:flex!important}
+}
+nav.mob{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:20;justify-content:space-around;padding:6px 0}
+nav.mob a{color:var(--muted);font-size:11px;text-align:center}nav.mob a.on{color:var(--primary);font-weight:600}
+@media (max-width:767px){body.has-mob main{padding-bottom:72px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts" aria-live="polite"></div>
+<script>
+/* ===== Утилиты ===== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10);
+const money=(v,cur=true)=>v==null||isNaN(v)?'—':Number(v).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+(cur?' ₽':'');
+const qtyf=v=>Number(v).toLocaleString('ru-RU',{maximumFractionDigits:3});
+const pad=n=>String(n).padStart(2,'0');
+const fdt=d=>{if(!d)return'—';d=new Date(d);return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
+const fd=d=>{if(!d)return'—';d=new Date(d);return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`};
+const H=3600e3, D=24*H, now=()=>Date.now();
+function left(dl){const ms=new Date(dl)-now();if(ms<=0)return'срок истёк';const d=Math.floor(ms/D),h=Math.floor(ms%D/H),m=Math.floor(ms%H/6e4);return 'Осталось '+(d?d+' дн. ':'')+h+' ч'+(d?'':' '+m+' мин')}
+const toLocalInput=d=>{d=new Date(d);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
+
+/* ===== Справочники и демо-данные ===== */
+const CATS=[
+ ['KANC','Канцелярские товары','бумага, ручка, папка, степлер, скрепки, карандаш, маркер, блокнот, тетрадь, скоросшиватель, клей, ластик, ежедневник, конверт'],
+ ['COMP','Компьютерная техника и оргтехника','ноутбук, компьютер, монитор, принтер, мфу, сканер, клавиатура, мышь, сервер, проектор, системный блок'],
+ ['RASX','Расходные материалы для оргтехники','картридж, тонер, барабан, фотобарабан, чернила, флешка'],
+ ['MEB','Мебель','стол, стул, кресло, шкаф, тумба, стеллаж, диван, полка'],
+ ['HOZ','Хозяйственные товары','мыло, салфетки, полотенца, мешки, перчатки хозяйственные, швабра, ведро, моющее, туалетная, освежитель'],
+ ['STR','Строительные материалы','цемент, краска, гипсокартон, шпаклевка, кирпич, плитка, ламинат, грунтовка'],
+ ['ELEC','Электротовары','лампа, удлинитель, кабель, розетка, выключатель, светильник, батарейка, аккумулятор'],
+ ['MED','Медицинские изделия','бинт, шприц, маска, аптечка, термометр, перчатки медицинские, антисептик'],
+ ['FOOD','Продукты питания','чай, кофе, сахар, вода питьевая, печенье, молоко'],
+ ['SIZ','Спецодежда и СИЗ','костюм, каска, ботинки, перчатки рабочие, респиратор, очки защитные, жилет'],
+ ['OTH','Прочее','']
+];
+const STATUS={draft:['Черновик','b-gray'],collect:['Сбор КП','b-blue'],closed:['Приём завершён','b-amber'],done:['Завершена','b-green'],cancel:['Отменена','b-red']};
+const INV={sent:['Приглашение отправлено','Новое','b-blue'],viewed:['Просмотрено','Просмотрено','b-gray'],draft:['Готовит предложение','Черновик','b-amber'],submitted:['КП подано','Подано','b-green'],changed:['КП изменено','Подано (изменено)','b-green'],declined:['Отказ','Отказ от участия','b-red'],expired:['Не подано','Срок истёк','b-gray']};
+const DECLINE=['Нет в наличии','Не наш профиль','Сроки не подходят','Другое'];
+const KEY='cenexpert_v1';
+let DB;
+
+function seed(){
+  const cats=CATS.map(([code,name,kw])=>({id:code,code,name,keywords:kw?kw.split(',').map(s=>s.trim()):[],active:true}));
+  const sup=[
+   ['s1','7707083893','ООО «Канцлидер»',['KANC','HOZ'],'Иванов Пётр','+7 (495) 111-22-33','sales@kancleader.ru'],
+   ['s2','7728168971','АО «Офис-Снаб»',['KANC','RASX','COMP'],'Смирнова Ольга','+7 (495) 222-33-44','kp@officesnab.ru'],
+   ['s3','5003052454','ООО «ТехноПарк»',['COMP','RASX','ELEC'],'Кузнецов Андрей','+7 (499) 333-44-55','tender@technopark.ru'],
+   ['s4','7710140679','ООО «Бюро-Маркет»',['KANC','MEB'],'Попова Анна','+7 (495) 444-55-66','info@buromarket.ru'],
+   ['s5','7802348846','ООО «Принт-Сервис»',['RASX'],'Волков Денис','+7 (812) 555-66-77','zakaz@printservice.ru'],
+   ['s6','6658021579','ООО «ХозТорг»',['HOZ','SIZ'],'Морозова Елена','+7 (343) 666-77-88','hoz@hoztorg.ru'],
+   ['s7','7736207543','ООО «МебельПро»',['MEB'],'Лебедев Игорь','+7 (495) 777-88-99','pro@mebelpro.ru'],
+   ['s8','7703270067','ООО «НовыйПоставщик»',['ELEC','STR'],'Соколов Максим','+7 (495) 888-99-00','new@supplier.ru']
+  ].map(([id,inn,n,c,cp,ph,em],i)=>({id,inn,kpp:inn.slice(0,4)+'01001',ogrn:'10277'+inn.slice(0,8),shortName:n,fullName:'Общество с ограниченной ответственностью '+n.replace(/^(ООО|АО) /,''),cats:c,contact:cp,phone:ph,email:em,address:'г. Москва, ул. Примерная, д. '+(i+1),status:id==='s8'?'pending':'active',created:now()-(60-i*5)*D}));
+  const users=[
+   {id:'u1',email:'spec@oce.ru',pass:'demo1234',role:'specialist',name:'Гусарова Мария Сергеевна',phone:'+7 (495) 100-20-30',position:'Ведущий специалист ОЦЭ',status:'active'},
+   {id:'u2',email:'admin@oce.ru',pass:'admin1234',role:'admin',name:'Администратор системы',phone:'',position:'Администратор',status:'active'},
+   ...sup.map(s=>({id:'u'+s.id,email:s.email,pass:'demo1234',role:'supplier',name:s.contact,supplierId:s.id,status:s.status}))
+  ];
+  const it=(line,name,specs,unit,qty,cat)=>({id:uid(),line,name,specs,unit,qty,cat});
+  const r1items=[
+   it(1,'Бумага офисная А4','80 г/м², 500 л., белизна 146%','пачка',200,'KANC'),
+   it(2,'Ручка шариковая синяя','0,7 мм, прозрачный корпус','шт',300,'KANC'),
+   it(3,'Папка-регистратор','75 мм, ПВХ','шт',60,'KANC'),
+   it(4,'Степлер №24/6','до 25 листов','шт',20,'KANC'),
+   it(5,'Скрепки 28 мм','100 шт в упаковке','упак',80,'KANC'),
+   it(6,'Картридж HP 59A','оригинальный','шт',15,'RASX'),
+   it(7,'Тонер-картридж Kyocera TK-1170','оригинальный','шт',10,'RASX'),
+   it(8,'Мышь компьютерная','USB, проводная','шт',25,'COMP')
+  ];
+  const base={s1:[520,38,210,480,45],s2:[495,41,198,455,52,14900,9100,690],s4:[540,35,225,510,40],s5:[null,null,null,null,null,15800,8700],s3:[null,null,null,null,null,13950,9400,640]};
+  const mkOffer=(arr,items,extra)=>{const o={status:'submitted',items:{},deliveryDays:extra[0],payment:extra[1],validUntil:now()+30*D,warranty:extra[2],deliveryIncl:true,comment:'',file:'КП_подписанное.pdf',submittedAt:now()-extra[3]*H};items.forEach((x,i)=>{const p=arr[i];o.items[x.id]=p==null?{ns:true}:{price:p,vat:20}});return o};
+  const inv=(sid,status,offer,extra={})=>({id:uid(),supplierId:sid,email:sup.find(s=>s.id===sid).email,status,sentAt:now()-3*D,viewedAt:status!=='sent'?now()-2*D:null,offer,versions:offer?[1]:[],...extra});
+  const r1={id:'r1',number:'КП-2026-0042',title:'Канцтовары и расходники на IV квартал 2026',description:'Поставка канцелярских товаров и расходных материалов для оргтехники в головной офис.',delivery:'г. Москва, ул. Тверская, д. 1, склад. Доставка за счёт поставщика.',deadline:now()+2*D+5*H,status:'collect',createdBy:'u1',createdAt:now()-4*D,publishedAt:now()-3*D,items:r1items,docs:['ТЗ_канцтовары.pdf'],hidePrices:false,lastSeen:now()-20*H,
+    invitations:[inv('s1','submitted',mkOffer(base.s1,r1items,[10,'Отсрочка 30 дней','12 мес.',30])),inv('s2','changed',mkOffer(base.s2,r1items,[7,'Отсрочка 15 дней','12 мес.',5])),inv('s4','submitted',mkOffer(base.s4,r1items,[14,'Предоплата 30 %','—',50])),inv('s5','submitted',mkOffer(base.s5,r1items,[5,'Отсрочка 30 дней','6 мес.',3])),inv('s3','draft',null),inv('s6','declined',null,{declineReason:'Не наш профиль'})],
+    history:[]};
+  r1.invitations[4].offer={status:'draft',items:{},deliveryDays:'',payment:'',validUntil:'',deliveryIncl:true};
+  r1.history=[[now()-4*D,'Гусарова М. С.','Заявка создана'],[now()-3*D,'Гусарова М. С.','Заявка опубликована, отправлено 6 приглашений'],[now()-50*H,'ООО «Бюро-Маркет»','Подано КП'],[now()-30*H,'ООО «Канцлидер»','Подано КП'],[now()-29*H,'ООО «ХозТорг»','Отказ от участия: Не наш профиль'],[now()-10*H,'АО «Офис-Снаб»','Подано КП'],[now()-5*H,'АО «Офис-Снаб»','КП изменено'],[now()-3*H,'ООО «Принт-Сервис»','Подано КП']].map(([t,u,x])=>({t,user:u,text:x}));
+  const r2items=[it(1,'Кресло офисное','сетчатая спинка, подлокотники','шт',12,'MEB'),it(2,'Стол письменный','1400×700 мм','шт',6,'MEB'),it(3,'Шкаф для документов','800×400×2000 мм','шт',4,'MEB')];
+  const r2={id:'r2',number:'КП-2026-0043',title:'Офисная мебель для нового кабинета',description:'',delivery:'г. Москва, сборка на месте',deadline:now()+14*H,status:'collect',createdBy:'u1',createdAt:now()-2*D,publishedAt:now()-2*D,items:r2items,docs:[],hidePrices:false,lastSeen:now(),
+    invitations:[inv('s4','viewed',null),inv('s7','sent',null)],history:[{t:now()-2*D,user:'Гусарова М. С.',text:'Заявка опубликована, отправлено 2 приглашения'}]};
+  const r3items=[it(1,'Перчатки хозяйственные','латексные, размер L','пара',100,'HOZ'),it(2,'Мешки для мусора 120 л','рулон 10 шт','рулон',50,'HOZ')];
+  const r3={id:'r3',number:'КП-2026-0038',title:'Хозтовары на сентябрь',description:'',delivery:'',deadline:now()-10*D,status:'done',createdBy:'u1',createdAt:now()-25*D,publishedAt:now()-24*D,closedAt:now()-10*D,items:r3items,docs:[],hidePrices:false,lastSeen:now(),
+    invitations:[inv('s1','submitted',mkOffer([65,180],r3items,[5,'Отсрочка 30 дней','—',300])),inv('s6','submitted',mkOffer([58,195],r3items,[3,'Отсрочка 15 дней','—',320]))],history:[{t:now()-25*D,user:'Гусарова М. С.',text:'Заявка создана'}]};
+  const r4={id:'r4',number:'КП-2026-0044',title:'Электротовары (черновик)',description:'',delivery:'',deadline:now()+7*D,status:'draft',createdBy:'u1',createdAt:now()-5*H,items:[it(1,'Лампа светодиодная E27','12 Вт, 4000K','шт',150,'ELEC')],docs:[],invitations:[],history:[{t:now()-5*H,user:'Гусарова М. С.',text:'Черновик создан'}],lastSeen:now()};
+  return {cats,suppliers:sup,users,requests:[r1,r2,r3,r4],seq:44,notifications:[
+    {id:uid(),userId:'u1',text:'Поступило КП от ООО «Принт-Сервис» по заявке КП-2026-0042',t:now()-3*H,read:false},
+    {id:uid(),userId:'u1',text:'АО «Офис-Снаб» изменило КП по заявке КП-2026-0042',t:now()-5*H,read:false},
+    {id:uid(),userId:'u1',text:'Новый поставщик ООО «НовыйПоставщик» ожидает подтверждения',t:now()-20*H,read:true},
+    {id:uid(),userId:'us3',text:'Напоминание: приём КП по заявке КП-2026-0042 завершается '+fdt(r1.deadline),t:now()-H,read:false}],
+    audit:[],session:null};
+}
+function load(){try{DB=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!DB||!DB.cats)DB=seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+const me=()=>DB.users.find(u=>u.id===DB.session);
+const cat=id=>DB.cats.find(c=>c.id===id);
+const supplier=id=>DB.suppliers.find(s=>s.id===id);
+const reqById=id=>DB.requests.find(r=>r.id===id);
+function audit(action,details=''){const u=me();DB.audit.unshift({t:now(),user:u?u.email:'—',action,details});DB.audit.length=Math.min(DB.audit.length,500)}
+function notify(userId,text){DB.notifications.unshift({id:uid(),userId,text,t:now(),read:false})}
+function hist(r,text){const u=me();r.history.push({t:now(),user:u?(u.supplierId?supplier(u.supplierId).shortName:shortName(u.name)):'Система',text})}
+const shortName=n=>{const p=n.split(' ');return p.length>=3?`${p[0]} ${p[1][0]}. ${p[2][0]}.`:n};
+
+/* автоопределение направления по ключевым словам (без учёта регистра и окончаний) */
+function stem(w){w=w.toLowerCase().replace(/ё/g,'е');return w.length>5?w.slice(0,w.length-2):w.length>3?w.slice(0,w.length-1):w}
+function detectCat(name){
+  const words=(name||'').toLowerCase().split(/[^a-zа-яё0-9]+/i).filter(Boolean).map(stem);let best=null,score=0;
+  DB.cats.filter(c=>c.active).forEach(c=>{let s=0;c.keywords.forEach(k=>{const kw=k.toLowerCase().split(/\s+/).map(stem);if(kw.every(x=>words.some(w=>w.startsWith(x)||x.startsWith(w)&&w.length>=4)))s+=kw.length});if(s>score){score=s;best=c.id}});
+  return best;
+}
+/* проверка ИНН */
+function innOk(v){if(!/^\d{10}$|^\d{12}$/.test(v))return false;const n=v.split('').map(Number);const c=(w)=>w.reduce((s,k,i)=>s+k*n[i],0)%11%10;
+  if(v.length===10)return c([2,4,10,3,5,9,4,6,8])===n[9];
+  return c([7,2,4,10,3,5,9,4,6,8])===n[10]&&c([3,7,2,4,10,3,5,9,4,6,8])===n[11]}
+
+/* ===== UI-инфраструктура ===== */
+function toast(text,type=''){const t=document.createElement('div');t.className='toast '+type;t.textContent=text;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),5000)}
+function modal(html,onMount){const bg=document.createElement('div');bg.className='modal-bg';bg.innerHTML=`<div class="modal" role="dialog" aria-modal="true">${html}</div>`;document.body.appendChild(bg);
+  const close=()=>bg.remove();bg.addEventListener('click',e=>{if(e.target===bg||e.target.dataset.close!=null)close()});onMount&&onMount(bg.firstChild,close);const f=$('input,select,textarea,button',bg.firstChild);f&&f.focus();return close}
+function confirmBox(title,text,okText,cb,danger){modal(`<h2>${title}</h2><p>${text}</p><div class="row"><button class="sec" data-close>Отмена</button><button class="${danger?'danger':''}" id="okb">${okText}</button></div>`,(m,close)=>{$('#okb',m).onclick=()=>{close();cb()}})}
+const badge=(s)=>`<span class="badge ${STATUS[s][1]}">${STATUS[s][0]}</span>`;
+const invBadge=(s,sup)=>`<span class="badge ${INV[s][2]}">${sup?INV[s][1]:INV[s][0]}</span>`;
+function download(name,content,type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(content instanceof Blob?content:new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+const go=h=>{if(location.hash==='#'+h)render();else location.hash=h};
+let route={path:'',q:{}};
+function parseHash(){const h=location.hash.slice(1)||'/';const [p,qs]=h.split('?');route={path:p,q:Object.fromEntries(new URLSearchParams(qs||''))}}
+
+/* автоматическое закрытие по сроку */
+function tick(){let ch=false;DB.requests.forEach(r=>{if(r.status==='collect'&&new Date(r.deadline)<=now()){r.status='closed';r.closedAt=now();r.invitations.forEach(i=>{if(['sent','viewed','draft'].includes(i.status))i.status='expired'});r.history.push({t:now(),user:'Система',text:'Приём КП завершён автоматически по сроку'});const n=r.invitations.filter(i=>i.offer&&i.offer.status==='submitted').length;notify(r.createdBy,`Приём КП по заявке ${r.number} завершён: подано ${n} из ${r.invitations.length}`);ch=true}});if(ch)save()}
+
+/* ===== Каркас ===== */
+function shell(content,active){
+  const u=me(),sup=u.role==='supplier';const notes=DB.notifications.filter(n=>n.userId===u.id);const unread=notes.filter(n=>!n.read).length;
+  const pend=DB.suppliers.filter(s=>s.status==='pending').length;
+  const role={specialist:'Специалист ОЦЭ',supplier:'Поставщик',admin:'Администратор'}[u.role];
+  const invNew=sup?DB.requests.filter(r=>r.invitations.some(i=>i.supplierId===u.supplierId&&i.status==='sent')).length:0;
+  const side=[['/','📋','Заявки','req'],['/suppliers','🏢','Поставщики','sup'],['/suppliers/moderation','✅','Модерация','mod',pend]];
+  if(u.role==='admin')side.push(['/admin/users','⚙️','Администрирование','adm']);
+  const supNav=[['/','Приглашения','inv',invNew],['/profile','Профиль','prof']];
+  document.body.classList.toggle('has-mob',sup);
+  return `<header class="top"><a href="#/" class="logo" aria-label="На главную">ЦЭ</a><div class="brand"><b>Портал коммерческих предложений</b><span>Отдел ценовой экспертизы</span></div>
+  ${sup?`<nav class="topnav desk">${supNav.map(([h,t,k,c])=>`<a href="#${h}" class="${active===k?'on':''}">${t}${c?` <span class="new">${c}</span>`:''}</a>`).join('')}</nav>`:''}
+  <div class="sp"></div><button class="bell" id="bell" aria-label="Уведомления">🔔${unread?`<i>${unread}</i>`:''}</button>
+  <div class="user"><b>${esc(sup?supplier(u.supplierId).shortName:u.name)}</b><small>${role}</small></div>
+  <div class="menu"><button class="sec sm" id="umenu" aria-haspopup="true">▾</button></div></header>
+  <div class="layout">${sup?'':`<nav class="side">${side.map(([h,i,t,k,c])=>`<a href="#${h}" class="${active===k?'on':''}" title="${t}"><b aria-hidden="true">${i}</b><span>${t}</span>${c?`<em>${c}</em>`:''}</a>`).join('')}</nav>`}
+  <main>${content}</main></div>
+  ${sup?`<nav class="mob">${supNav.map(([h,t,k])=>`<a href="#${h}" class="${active===k?'on':''}">${t}</a>`).join('')}</nav>`:''}
+  <footer>АО «Заказчик» · Отдел ценовой экспертизы · oce@company.ru · +7 (495) 100-20-30 · <a href="#" onclick="modal('<h2>Политика обработки ПДн</h2><p>Обработка персональных данных осуществляется в соответствии с 152-ФЗ «О персональных данных». Данные хранятся на серверах на территории РФ.</p><div class=row><button data-close>Закрыть</button></div>');return false">Политика обработки персональных данных</a></footer>`;
+}
+function bindShell(){
+  const u=me();
+  $('#bell').onclick=e=>{e.stopPropagation();const ex=$('.dropdown');if(ex){ex.remove();return}
+    const notes=DB.notifications.filter(n=>n.userId===u.id).slice(0,20);const d=document.createElement('div');d.className='dropdown';
+    d.innerHTML=notes.length?notes.map(n=>`<div class="${n.read?'':'unread'}">${esc(n.text)}<br><span class="small muted">${fdt(n.t)}</span></div>`).join(''):'<div class="muted">Уведомлений нет</div>';
+    $('header.top').appendChild(d);notes.forEach(n=>n.read=true);save();const b=$('#bell i');b&&b.remove()};
+  $('#umenu').onclick=e=>{e.stopPropagation();const m=$('#umenu').parentNode;const ex=$('ul',m);if(ex){ex.remove();return}
+    const ul=document.createElement('ul');ul.innerHTML=`<li data-a="profile">Профиль</li><li data-a="reset">Сбросить демо-данные</li><li data-a="out">Выйти</li>`;m.appendChild(ul);
+    ul.onclick=ev=>{const a=ev.target.dataset.a;if(a==='out'){audit('Выход');DB.session=null;save();go('/login')}if(a==='profile')go('/profile');if(a==='reset'){localStorage.removeItem(KEY);load();save();go('/login');toast('Демо-данные восстановлены','ok')}}};
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.dropdown,#bell'))$('.dropdown')?.remove();if(!e.target.closest('.menu'))$$('.menu ul').forEach(x=>x.remove())});
+
+/* ===== Вход и регистрация ===== */
+let loginTab='specialist';
+const failed={};
+function pageLogin(){
+  const app=$('#app');
+  app.innerHTML=`<div class="login-wrap"><div class="card login"><div class="row" style="margin-bottom:16px"><div class="logo">ЦЭ</div><div class="brand"><b>Портал коммерческих предложений</b><span>Отдел ценовой экспертизы</span></div></div>
+  <h1 style="margin-bottom:16px">Вход в портал</h1>
+  <div class="tabs"><button data-t="specialist" class="${loginTab==='specialist'?'on':''}">Специалист ОЦЭ</button><button data-t="supplier" class="${loginTab==='supplier'?'on':''}">Поставщик</button></div>
+  <form id="lf" novalidate><label class="f"><span>E-mail</span><input type="email" name="email" required autocomplete="username" placeholder="${loginTab==='supplier'?'email@company.ru':'ivanov@oce.ru'}"></label>
+  <label class="f"><span>Пароль</span><input type="password" name="pass" required autocomplete="current-password"></label>
+  <div id="lerr" class="err-text" style="margin-bottom:8px"></div>
+  <div class="row"><a href="#/reset-password">Забыли пароль?</a><div class="sp"></div><button type="submit">Войти</button></div></form>
+  ${loginTab==='supplier'?`<p style="margin-top:16px">Нет учётной записи? <a href="#/register">Зарегистрироваться</a></p>`:''}
+  <div class="demo">Демо-доступ (заполнит форму):<br>
+  <button class="sec sm" data-demo="spec@oce.ru|demo1234">Специалист</button><button class="sec sm" data-demo="tender@technopark.ru|demo1234">Поставщик (ТехноПарк)</button><button class="sec sm" data-demo="sales@kancleader.ru|demo1234">Поставщик (Канцлидер)</button><button class="sec sm" data-demo="admin@oce.ru|admin1234">Администратор</button></div></div></div>`;
+  $$('.tabs button',app).forEach(b=>b.onclick=()=>{loginTab=b.dataset.t;pageLogin()});
+  $$('[data-demo]',app).forEach(b=>b.onclick=()=>{const[e,p]=b.dataset.demo.split('|');$('[name=email]').value=e;$('[name=pass]').value=p});
+  $('#lf').onsubmit=e=>{e.preventDefault();const em=e.target.email.value.trim().toLowerCase(),pw=e.target.pass.value;const f=failed[em]||{n:0,until:0};
+    if(f.until>now()){$('#lerr').textContent=`Вход заблокирован после 5 неудачных попыток. Повторите через ${Math.ceil((f.until-now())/6e4)} мин.`;return}
+    const u=DB.users.find(x=>x.email===em&&x.pass===pw);
+    if(!u){f.n++;if(f.n>=5){f.until=now()+15*6e4;f.n=0}failed[em]=f;$('#lerr').textContent='Неверный e-mail или пароль';return}
+    if(u.status==='pending'){$('#lerr').textContent='Учётная запись на модерации. Вы получите письмо после подтверждения.';return}
+    if(u.status==='blocked'||u.status==='rejected'){$('#lerr').textContent='Учётная запись заблокирована. Обратитесь в ОЦЭ.';return}
+    DB.session=u.id;u.lastLogin=now();audit('Вход');save();go(u.role==='admin'?'/admin/users':'/')};
+}
+function pageReset(){
+  $('#app').innerHTML=`<div class="login-wrap"><div class="card login"><h1 style="margin-bottom:12px">Восстановление пароля</h1><p class="muted">Укажите e-mail — мы отправим ссылку для сброса пароля (действует 1 час).</p>
+  <form id="rf"><label class="f"><span>E-mail</span><input type="email" required name="email"></label><div class="row"><a href="#/login">← Ко входу</a><div class="sp"></div><button>Отправить ссылку</button></div></form></div></div>`;
+  $('#rf').onsubmit=e=>{e.preventDefault();toast('Если e-mail зарегистрирован, письмо со ссылкой отправлено','ok');go('/login')};
+}
+function pageRegister(){
+  const tok=route.q.token;let inv=null,req=null;
+  if(tok)DB.requests.forEach(r=>r.invitations.forEach(i=>{if(i.token===tok){inv=i;req=r}}));
+  const field=(n,l,req,ph='',type='text')=>`<label class="f"><span>${l}${req?' *':''}</span><input name="${n}" type="${type}" placeholder="${ph}" ${n==='email'&&inv?`value="${esc(inv.email)}" readonly`:''}><span class="err-text" data-e="${n}"></span></label>`;
+  $('#app').innerHTML=`<div class="login-wrap"><div class="card" style="max-width:760px;width:100%"><h1 style="margin-bottom:8px">Регистрация поставщика</h1>
+  ${inv?`<div class="alert a-info">Вы приглашены к подаче КП по заявке <b>${esc(req.number)}</b> «${esc(req.title)}». Учётная запись будет активирована сразу.</div>`:`<div class="alert a-warn">Регистрация без приглашения проходит модерацию специалистом ОЦЭ.</div>`}
+  <form id="regf" novalidate><div class="grid2">${field('inn','ИНН',1,'10 или 12 цифр')}${field('kpp','КПП (для юрлиц)',0,'9 цифр')}</div>
+  ${field('fullName','Полное наименование организации',1)}<div class="grid2">${field('shortName','Краткое наименование',1)}${field('ogrn','ОГРН / ОГРНИП',1,'13 или 15 цифр')}</div>
+  ${field('address','Юридический адрес',1)}<div class="grid2">${field('contact','ФИО контактного лица',1)}${field('position','Должность',0)}${field('phone','Телефон',1,'+7 (XXX) XXX-XX-XX')}${field('email','E-mail',1,'','email')}</div>
+  <div class="f"><span class="small muted">Направления деятельности *</span><div class="chips" style="margin-top:4px">${DB.cats.filter(c=>c.active).map(c=>`<label style="margin-right:12px;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" name="cats" value="${c.id}">${esc(c.name)}</label>`).join('')}</div><span class="err-text" data-e="cats"></span></div>
+  <div class="grid2" style="margin-top:12px">${field('pass','Пароль',1,'не менее 8 символов, буквы и цифры','password')}${field('pass2','Подтверждение пароля',1,'','password')}</div>
+  <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="pdn">Даю согласие на обработку персональных данных (152-ФЗ) *</label><span class="err-text" data-e="pdn"></span>
+  <div class="row" style="margin-top:16px"><a href="#/login">← Ко входу</a><div class="sp"></div><button>Зарегистрироваться</button></div></form></div></div>`;
+  const ph=$('[name=phone]');ph.oninput=()=>{let d=ph.value.replace(/\D/g,'').replace(/^[78]/,'').slice(0,10);let s='+7';if(d.length)s+=' ('+d.slice(0,3);if(d.length>=3)s+=') '+d.slice(3,6);if(d.length>=6)s+='-'+d.slice(6,8);if(d.length>=8)s+='-'+d.slice(8,10);ph.value=s};
+  $('#regf').onsubmit=e=>{e.preventDefault();const f=e.target,v=n=>f[n].value.trim();const er={};
+    if(!innOk(v('inn')))er.inn='Неверный ИНН (проверьте контрольную сумму)';else if(DB.suppliers.some(s=>s.inn===v('inn')))er.inn='Поставщик с таким ИНН уже зарегистрирован';
+    if(v('inn').length===10&&!/^\d{9}$/.test(v('kpp')))er.kpp='Для юрлица КПП обязателен: 9 цифр';
+    if(!v('fullName'))er.fullName='Обязательное поле';if(!v('shortName'))er.shortName='Обязательное поле';
+    if(!/^\d{13}$|^\d{15}$/.test(v('ogrn')))er.ogrn='13 или 15 цифр';if(!v('address'))er.address='Обязательное поле';if(!v('contact'))er.contact='Обязательное поле';
+    if(!/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/.test(v('phone')))er.phone='Формат +7 (XXX) XXX-XX-XX';
+    if(!/^\S+@\S+\.\S+$/.test(v('email')))er.email='Некорректный e-mail';else if(!inv&&DB.users.some(u=>u.email===v('email').toLowerCase()))er.email='E-mail уже зарегистрирован';
+    const cats=$$('[name=cats]:checked',f).map(x=>x.value);if(!cats.length)er.cats='Выберите хотя бы одно направление';
+    if(!(v('pass').length>=8&&/[a-zа-я]/i.test(v('pass'))&&/\d/.test(v('pass'))))er.pass='Не менее 8 символов, буквы и цифры';if(v('pass')!==v('pass2'))er.pass2='Пароли не совпадают';
+    if(!f.pdn.checked)er.pdn='Необходимо согласие';
+    $$('[data-e]',f).forEach(x=>x.textContent=er[x.dataset.e]||'');$$('input',f).forEach(x=>x.style.borderColor=er[x.name]?'var(--err)':'');
+    if(Object.keys(er).length)return;
+    const sid='s'+uid(),st=inv?'active':'pending';
+    DB.suppliers.push({id:sid,inn:v('inn'),kpp:v('kpp'),ogrn:v('ogrn'),fullName:v('fullName'),shortName:v('shortName'),cats,contact:v('contact'),phone:v('phone'),email:v('email').toLowerCase(),address:v('address'),status:st,created:now()});
+    const uidn='u'+sid;DB.users.push({id:uidn,email:v('email').toLowerCase(),pass:v('pass'),role:'supplier',name:v('contact'),position:v('position'),supplierId:sid,status:st});
+    if(inv){inv.supplierId=sid;delete inv.token;DB.session=uidn;save();toast('Регистрация завершена','ok');go('/invitations/'+req.id)}
+    else{DB.users.filter(u=>u.role==='specialist').forEach(u=>notify(u.id,`Новый поставщик ${v('shortName')} ожидает подтверждения`));save();modal(`<h2>Заявка на регистрацию отправлена</h2><p>Учётная запись будет активирована после проверки специалистом ОЦЭ. Результат придёт на e-mail.</p><div class="row"><button data-close>Понятно</button></div>`);go('/login')}};
+}
+
+/* ===== Расчёты по КП ===== */
+const vatK=v=>v==='none'||v==null?0:Number(v)/100;
+function lineCalc(it,o){if(!o||o.ns||o.price==null||o.price==='')return null;const p=Number(o.price);const pv=Math.round(p*(1+vatK(o.vat))*100)/100;return{p,pv,sum:Math.round(pv*it.qty*100)/100,sumNo:Math.round(p*it.qty*100)/100}}
+function offerTotals(r,offer,items){let no=0,w=0,cnt=0;(items||r.items).forEach(it=>{const c=lineCalc(it,offer.items[it.id]);if(c){no+=c.sumNo;w+=c.sum;cnt++}});return{no,vat:w-no,w,cnt}}
+const submitted=r=>r.invitations.filter(i=>i.offer&&i.offer.status==='submitted');
+const supItems=(r,sid)=>{const s=supplier(sid);return r.items.filter(it=>s&&s.cats.includes(it.cat))};
+
+/* ===== Дашборд специалиста ===== */
+let dash={status:'',q:'',cat:'',from:'',to:'',sort:'createdAt',dir:-1,page:1};
+function pageDashboard(){
+  const rs=DB.requests;const act=rs.filter(r=>r.status==='collect');
+  const new24=rs.reduce((s,r)=>s+submitted(r).filter(i=>now()-i.offer.submittedAt<D).length,0);
+  const today=act.filter(r=>new Date(r.deadline)-now()<D).length;
+  const doneM=rs.filter(r=>r.status==='done'&&now()-(r.closedAt||0)<30*D).length;
+  let list=rs.filter(r=>(!dash.status||r.status===dash.status)&&(!dash.cat||r.items.some(i=>i.cat===dash.cat))&&(!dash.q||(r.number+' '+r.title).toLowerCase().includes(dash.q.toLowerCase()))&&(!dash.from||r.createdAt>=new Date(dash.from))&&(!dash.to||r.createdAt<=new Date(dash.to).getTime()+D));
+  const key={number:r=>r.number,title:r=>r.title,items:r=>r.items.length,inv:r=>r.invitations.length,sub:r=>submitted(r).length,deadline:r=>new Date(r.deadline),status:r=>r.status,createdAt:r=>r.createdAt}[dash.sort];
+  list.sort((a,b)=>(key(a)>key(b)?1:key(a)<key(b)?-1:0)*dash.dir);
+  const pages=Math.max(1,Math.ceil(list.length/20));dash.page=Math.min(dash.page,pages);const pl=list.slice((dash.page-1)*20,dash.page*20);
+  const th=(k,t,c='')=>`<th class="sort ${c}" data-s="${k}">${t}${dash.sort===k?(dash.dir>0?' ↑':' ↓'):''}</th>`;
+  const isNew=r=>submitted(r).some(i=>(i.offer.submittedAt||0)>(r.lastSeen||0));
+  const subCell=r=>{const n=submitted(r).length,m=r.invitations.length;return `${n} из ${m}${isNew(r)?'<span class="new">Новое</span>':''}<div class="progress"><div style="width:${m?n/m*100:0}%"></div></div>`};
+  const dl=r=>`<span style="${r.status==='collect'&&new Date(r.deadline)-now()<D?'color:var(--err);font-weight:600':''}">${fdt(r.deadline)}</span>`;
+  const html=`<div class="page-head"><h1>Заявки на сбор КП</h1><div class="sp"></div><button id="newReq">+ Создать заявку</button></div>
+  <div class="grid4" style="margin-bottom:20px">${[['Активные заявки',act.length],['Новые КП за 24 ч',new24],['Истекают сегодня',today],['Завершённые за месяц',doneM]].map(([t,v])=>`<div class="card stat"><b>${v}</b><span>${t}</span></div>`).join('')}</div>
+  <div class="card" style="margin-bottom:16px;padding:14px 16px"><div class="row">
+   <input id="fq" placeholder="Поиск по номеру или наименованию" value="${esc(dash.q)}" style="max-width:300px">
+   <select id="fs" style="max-width:180px"><option value="">Все статусы</option>${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${dash.status===k?'selected':''}>${v[0]}</option>`).join('')}</select>
+   <select id="fc" style="max-width:240px"><option value="">Все направления</option>${DB.cats.map(c=>`<option value="${c.id}" ${dash.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+   <span class="small muted">Создана с</span><input type="date" id="ff" value="${dash.from}" style="max-width:150px"><span class="small muted">по</span><input type="date" id="ft" value="${dash.to}" style="max-width:150px"></div></div>
+  ${list.length?`<div class="tw desk"><table><thead><tr>${th('number','Номер')}${th('title','Наименование')}${th('items','Позиций','num')}${th('inv','Приглашено','num')}${th('sub','Подано КП')}${th('deadline','Срок приёма')}${th('status','Статус')}<th></th></tr></thead><tbody>
+  ${pl.map(r=>`<tr><td><a href="#/requests/${r.id}">${r.number}</a></td><td>${esc(r.title)}</td><td class="num">${r.items.length}</td><td class="num">${r.invitations.length}</td><td>${subCell(r)}</td><td>${dl(r)}</td><td>${badge(r.status)}</td>
+  <td><div class="menu"><button class="txt" data-m="${r.id}" aria-label="Действия">⋯</button></div></td></tr>`).join('')}</tbody></table></div>
+  <div class="mcards">${pl.map(r=>`<a class="mcard" style="display:block;color:inherit" href="#/requests/${r.id}"><div class="row"><b>${r.number}</b><div class="sp"></div>${badge(r.status)}</div><div>${esc(r.title)}</div><div class="small muted">Позиций: ${r.items.length} · Срок: ${fdt(r.deadline)}</div>${subCell(r)}</a>`).join('')}</div>
+  ${pages>1?`<div class="row" style="margin-top:12px;justify-content:flex-end">${Array.from({length:pages},(_,i)=>`<button class="${i+1===dash.page?'':'sec'} sm" data-p="${i+1}">${i+1}</button>`).join('')}</div>`:''}`
+  :`<div class="card empty">${rs.length?'Ничего не найдено по заданным фильтрам':'Заявок пока нет. Создайте первую заявку'}<br><br><button onclick="go('/requests/new')">+ Создать заявку</button></div>`}`;
+  $('#app').innerHTML=shell(html,'req');bindShell();
+  $('#newReq').onclick=()=>go('/requests/new');
+  const upd=()=>{dash.page=1;pageDashboard()};
+  $('#fq').oninput=e=>{dash.q=e.target.value;clearTimeout(window._qt);window._qt=setTimeout(()=>{upd();const i=$('#fq');i.focus();i.setSelectionRange(99,99)},300)};
+  $('#fs').onchange=e=>{dash.status=e.target.value;upd()};$('#fc').onchange=e=>{dash.cat=e.target.value;upd()};
+  $('#ff').onchange=e=>{dash.from=e.target.value;upd()};$('#ft').onchange=e=>{dash.to=e.target.value;upd()};
+  $$('th[data-s]').forEach(t=>t.onclick=()=>{if(dash.sort===t.dataset.s)dash.dir*=-1;else{dash.sort=t.dataset.s;dash.dir=1}pageDashboard()});
+  $$('[data-p]').forEach(b=>b.onclick=()=>{dash.page=+b.dataset.p;pageDashboard()});
+  $$('[data-m]').forEach(b=>b.onclick=e=>{e.stopPropagation();$$('.menu ul').forEach(x=>x.remove());const r=reqById(b.dataset.m);const ul=document.createElement('ul');
+    ul.innerHTML=`<li data-a="open">Открыть</li><li data-a="copy">Копировать</li>${['draft','collect','closed'].includes(r.status)?'<li data-a="cancel" style="color:var(--err)">Отменить</li>':''}`;b.parentNode.appendChild(ul);
+    ul.onclick=ev=>{const a=ev.target.dataset.a;if(a==='open')go('/requests/'+r.id);if(a==='copy')copyRequest(r);if(a==='cancel')cancelRequest(r,pageDashboard)}});
+}
+function nextNumber(){DB.seq++;return `КП-${new Date().getFullYear()}-${String(DB.seq).padStart(4,'0')}`}
+function copyRequest(r){const c=JSON.parse(JSON.stringify(r));Object.assign(c,{id:'r'+uid(),number:nextNumber(),title:r.title+' (копия)',status:'draft',invitations:[],createdAt:now(),publishedAt:null,closedAt:null,deadline:now()+7*D,history:[],lastSeen:now(),createdBy:me().id});c.items.forEach(i=>i.id=uid());hist(c,'Черновик создан копированием заявки '+r.number);DB.requests.unshift(c);audit('Копирование заявки',r.number+' → '+c.number);save();toast('Создан черновик '+c.number,'ok');go('/requests/new?id='+c.id)}
+function cancelRequest(r,after){modal(`<h2>Отменить заявку ${r.number}?</h2><label class="f"><span>Причина отмены *</span><textarea id="cr"></textarea></label><span class="err-text" id="cre"></span><div class="row"><button class="sec" data-close>Назад</button><button class="danger" id="cok">Отменить заявку</button></div>`,(m,close)=>{
+  $('#cok',m).onclick=()=>{const v=$('#cr',m).value.trim();if(!v){$('#cre',m).textContent='Укажите причину';return}r.status='cancel';r.cancelReason=v;hist(r,'Заявка отменена: '+v);
+    r.invitations.forEach(i=>{const u=DB.users.find(x=>x.supplierId===i.supplierId);u&&notify(u.id,`Заявка ${r.number} отменена`)});audit('Отмена заявки',r.number);save();close();toast('Заявка отменена; поставщики уведомлены');after()}})}
+
+/* ===== Карточка заявки ===== */
+let card={tab:'cmp',vat:'with',cat:''};
+function pageRequest(id){
+  const r=reqById(id);if(!r){$('#app').innerHTML=shell('<div class="card empty">Заявка не найдена</div>','req');bindShell();return}
+  if(r.status==='draft'){go('/requests/new?id='+r.id);return}
+  const prevSeen=r.lastSeen;r.lastSeen=now();save();
+  const subs=submitted(r);const hide=r.hidePrices&&r.status==='collect';
+  const btns=[];
+  if(r.status==='collect'){btns.push(['extend','Продлить срок','sec'],['invite','Пригласить ещё','sec'],['remind','Напомнить','sec'],['close','Завершить приём','sec'])}
+  if(r.status==='closed'){btns.push(['extend','Продлить срок','sec'],['complete','Завершить заявку',''])}
+  if(['collect','closed'].includes(r.status))btns.push(['cancel','Отменить','txt']);
+  btns.push(['copy','Копировать','txt']);
+  const tabs=[['cmp','Сравнение цен'],['sup','Поставщики ('+r.invitations.length+')'],['items','Позиции ('+r.items.length+')'],['docs','Документы'],['hist','История']];
+  let body='';
+  if(card.tab==='cmp')body=hide?`<div class="card empty">Цены скрыты до окончания приёма КП (настройка заявки). Подано предложений: ${subs.length}</div>`:cmpTable(r,prevSeen);
+  if(card.tab==='sup')body=`<div class="tw"><table><thead><tr><th>Поставщик</th><th>ИНН</th><th>Направления</th><th>Статус</th><th>Дата подачи</th><th class="num">Сумма с НДС</th><th>Условия</th><th>Файлы</th><th></th></tr></thead><tbody>
+    ${r.invitations.map(i=>{const s=supplier(i.supplierId);const o=i.offer;const sub=o&&o.status==='submitted';const t=sub?offerTotals(r,o):null;
+    return `<tr><td>${s?esc(s.shortName):esc(i.email)+' <span class="small muted">(не зарегистрирован)</span>'}</td><td>${s?s.inn:'—'}</td><td class="chips">${s?s.cats.filter(c=>r.items.some(x=>x.cat===c)).map(c=>`<span>${esc(cat(c).name)}</span>`).join(''):'—'}</td>
+    <td>${invBadge(i.status)}${i.status==='declined'?`<div class="small muted">${esc(i.declineReason)}</div>`:''}</td><td>${sub?fdt(o.submittedAt):'—'}</td><td class="num">${sub&&!hide?money(t.w):'—'}</td>
+    <td class="small">${sub?`Поставка: ${o.deliveryDays} дн.<br>Оплата: ${esc(o.payment)}<br>КП до: ${fd(o.validUntil)}`:'—'}</td><td class="small">${sub?`<a href="#" data-file="${esc(o.file)}">📄 ${esc(o.file)}</a>${(o.extra||[]).map(f=>`<br><a href="#" data-file="${esc(f)}">📎 ${esc(f)}</a>`).join('')}`:'—'}</td>
+    <td>${sub&&!hide?`<button class="sec sm" data-offer="${i.id}">Подробнее</button>`:''}</td></tr>`}).join('')}</tbody></table></div>`;
+  if(card.tab==='items')body=`<div class="tw"><table><thead><tr><th class="num">№</th><th>Наименование</th><th>Характеристики</th><th>Ед. изм.</th><th class="num">Кол-во</th><th>Направление</th></tr></thead><tbody>${r.items.map(i=>`<tr><td class="num">${i.line}</td><td>${esc(i.name)}</td><td class="muted">${esc(i.specs)}</td><td>${esc(i.unit)}</td><td class="num">${qtyf(i.qty)}</td><td>${esc(cat(i.cat)?.name||'—')}</td></tr>`).join('')}</tbody></table></div>`;
+  if(card.tab==='docs')body=`<div class="card">${r.docs.length?r.docs.map(d=>`<div style="padding:6px 0">📄 <a href="#" data-file="${esc(d)}">${esc(d)}</a></div>`).join(''):'<div class="muted">Документы не прикреплены</div>'}<hr style="border:none;border-top:1px solid var(--border);margin:16px 0"><dl class="kv"><dt>Описание</dt><dd>${esc(r.description)||'—'}</dd><dt>Условия поставки</dt><dd>${esc(r.delivery)||'—'}</dd><dt>Создана</dt><dd>${fdt(r.createdAt)}</dd><dt>Опубликована</dt><dd>${fdt(r.publishedAt)}</dd>${r.cancelReason?`<dt>Причина отмены</dt><dd>${esc(r.cancelReason)}</dd>`:''}</dl></div>`;
+  if(card.tab==='hist')body=`<div class="tw"><table><thead><tr><th>Дата и время</th><th>Автор</th><th>Событие</th></tr></thead><tbody>${[...r.history].reverse().map(h=>`<tr><td class="num" style="text-align:left">${fdt(h.t)}</td><td>${esc(h.user)}</td><td>${esc(h.text)}</td></tr>`).join('')}</tbody></table></div>`;
+  const html=`<div class="small"><a href="#/">← Все заявки</a></div>
+  <div class="page-head" style="margin-top:8px"><div><div class="row"><h1>${r.number}</h1>${badge(r.status)}</div><div style="font-size:16px">${esc(r.title)}</div>
+  <div class="small muted">Срок приёма: <b style="color:${r.status==='collect'&&new Date(r.deadline)-now()<D?'var(--err)':'inherit'}">${fdt(r.deadline)} МСК</b>${r.status==='collect'?' · '+left(r.deadline):''} · Подано КП: ${subs.length} из ${r.invitations.length}</div></div>
+  <div class="sp"></div><div class="row">${btns.map(([a,t,c])=>`<button class="${c}" data-act="${a}">${t}</button>`).join('')}</div></div>
+  <div class="tabs" role="tablist">${tabs.map(([k,t])=>`<button role="tab" class="${card.tab===k?'on':''}" data-tab="${k}">${t}</button>`).join('')}</div>${body}`;
+  $('#app').innerHTML=shell(html,'req');bindShell();
+  $$('[data-tab]').forEach(b=>b.onclick=()=>{card.tab=b.dataset.tab;pageRequest(id)});
+  $$('[data-file]').forEach(a=>a.onclick=e=>{e.preventDefault();download(a.dataset.file,'Демо-файл: '+a.dataset.file)});
+  $$('[data-offer]').forEach(b=>b.onclick=()=>showOffer(r,r.invitations.find(i=>i.id===b.dataset.offer)));
+  $('#vatSw')&&($('#vatSw').onchange=e=>{card.vat=e.target.value;pageRequest(id)});
+  $('#catSw')&&($('#catSw').onchange=e=>{card.cat=e.target.value;pageRequest(id)});
+  $('#xls')&&($('#xls').onclick=()=>exportXlsx(r));$('#zip')&&($('#zip').onclick=()=>exportZip(r));
+  $$('[data-act]').forEach(b=>b.onclick=()=>reqAction(r,b.dataset.act,()=>pageRequest(id)));
+}
+function cmpTable(r,prevSeen){
+  const subs=submitted(r);const items=r.items.filter(i=>!card.cat||i.cat===card.cat);const withV=card.vat==='with';
+  const cats=[...new Set(r.items.map(i=>i.cat))];
+  const tools=`<div class="row" style="margin-bottom:12px"><select id="catSw" style="max-width:260px"><option value="">Все направления</option>${cats.map(c=>`<option value="${c}" ${card.cat===c?'selected':''}>${esc(cat(c)?.name)}</option>`).join('')}</select>
+   <select id="vatSw" style="max-width:140px"><option value="with" ${withV?'selected':''}>С НДС</option><option value="without" ${withV?'':'selected'}>Без НДС</option></select><div class="sp"></div>
+   <button class="sec" id="zip">⬇ Скачать все файлы КП</button><button id="xls">⬇ Выгрузить в Excel</button></div>`;
+  if(!subs.length)return tools+'<div class="card empty">Предложений пока нет. Поставщики получили приглашения — здесь появится сравнительная таблица.</div>';
+  const rows=items.map(it=>{const vals=subs.map(i=>{const c=lineCalc(it,i.offer.items[it.id]);return c?{v:withV?c.pv:c.p,s:withV?c.sum:c.sumNo}:null});
+    const nums=vals.filter(Boolean).map(x=>x.v);const mn=Math.min(...nums),mx=Math.max(...nums);const avg=nums.length?nums.reduce((a,b)=>a+b,0)/nums.length:null;
+    const sd=nums.length>1?Math.sqrt(nums.reduce((a,b)=>a+(b-avg)**2,0)/(nums.length-1)):0;const cv=avg?sd/avg*100:null;return{it,vals,nums,mn,mx,avg,cv}});
+  const totals=subs.map((i,k)=>{let s=0,c=0;rows.forEach(x=>{if(x.vals[k]){s+=x.vals[k].s;c++}});return{s,c}});
+  return tools+`<div class="small muted" style="margin-bottom:8px">▼ — минимальная цена в строке, ▲ — максимальная. Цена за единицу ${withV?'с НДС':'без НДС'}, ниже — сумма по позиции.</div>
+  <div class="tw"><table><thead><tr><th class="stick1 num" style="width:44px">№</th><th class="stick2" style="min-width:220px">Наименование</th><th class="num">Кол-во</th>
+  ${subs.map(i=>`<th class="num"><a href="#" data-offer="${i.id}">${esc(supplier(i.supplierId).shortName)}</a>${i.status==='changed'?'<br><span class="small" style="font-weight:400">изменено</span>':''}${i.offer.submittedAt>prevSeen?'<span class="new">Новое</span>':''}</th>`).join('')}
+  <th class="num">Мин.</th><th class="num">Средняя</th><th class="num">Макс.</th><th class="num">КП</th><th class="num">Вариация</th></tr></thead><tbody>
+  ${rows.map(x=>`<tr><td class="stick1 num">${x.it.line}</td><td class="stick2">${esc(x.it.name)}<div class="small muted">${esc(x.it.unit)}</div></td><td class="num">${qtyf(x.it.qty)}</td>
+   ${x.vals.map(v=>{if(!v)return'<td class="num muted">—</td>';const isMin=x.nums.length>1&&v.v===x.mn,isMax=x.nums.length>1&&v.v===x.mx&&x.mn!==x.mx;return `<td class="num ${isMin?'min':isMax?'max':''}">${isMin?'▼ ':isMax?'▲ ':''}${money(v.v,false)}<div class="small">${money(v.s,false)}</div></td>`}).join('')}
+   <td class="num">${x.nums.length?money(x.mn,false):'—'}</td><td class="num">${x.avg!=null?money(x.avg,false):'—'}</td><td class="num">${x.nums.length?money(x.mx,false):'—'}</td><td class="num">${x.nums.length}</td>
+   <td class="num">${x.cv!=null&&x.nums.length>1?(x.cv>33?'<span title="Значительный разброс цен" style="color:var(--warn)">⚠ </span>':'')+x.cv.toFixed(1)+' %':'—'}</td></tr>`).join('')}</tbody>
+  <tfoot><tr><td class="stick1"></td><td class="stick2">Итого по КП</td><td></td>${totals.map(t=>`<td class="num">${money(t.s)}<div class="small" style="font-weight:400">${t.c} из ${items.length} поз.</div></td>`).join('')}<td colspan="5"></td></tr></tfoot></table></div>`;
+}
+function showOffer(r,inv){const s=supplier(inv.supplierId),o=inv.offer,t=offerTotals(r,o);
+  modal(`<h2>КП: ${esc(s.shortName)}</h2><div class="small muted">ИНН ${s.inn} · ${esc(s.contact)} · ${esc(s.phone)} · ${esc(s.email)}<br>Подано ${fdt(o.submittedAt)}${inv.status==='changed'?' (изменено, версия '+inv.versions.length+')':''}</div>
+  <div class="tw" style="margin:12px 0;max-height:300px"><table><thead><tr><th>Позиция</th><th class="num">Цена без НДС</th><th>НДС</th><th class="num">Сумма с НДС</th></tr></thead><tbody>
+  ${supItems(r,s.id).map(it=>{const x=o.items[it.id]||{};const c=lineCalc(it,x);return `<tr><td>${esc(it.name)}${x.manuf?`<div class="small muted">${esc(x.manuf)}</div>`:''}</td>${c?`<td class="num">${money(c.p)}</td><td>${x.vat==='none'?'Без НДС':x.vat+' %'}</td><td class="num">${money(c.sum)}</td>`:'<td colspan="3" class="muted">Не поставляем</td>'}</tr>`}).join('')}</tbody></table></div>
+  <dl class="kv"><dt>Сумма без НДС</dt><dd>${money(t.no)}</dd><dt>НДС</dt><dd>${money(t.vat)}</dd><dt>Итого с НДС</dt><dd><b>${money(t.w)}</b></dd><dt>Срок поставки</dt><dd>${o.deliveryDays} дн.</dd><dt>Оплата</dt><dd>${esc(o.payment)}</dd><dt>КП действует до</dt><dd>${fd(o.validUntil)}</dd><dt>Гарантия</dt><dd>${esc(o.warranty)||'—'}</dd><dt>Доставка включена</dt><dd>${o.deliveryIncl?'Да':'Нет'}</dd>${o.comment?`<dt>Комментарий</dt><dd>${esc(o.comment)}</dd>`:''}</dl>
+  <div class="row"><button data-close>Закрыть</button></div>`)}
+
+/* ===== Действия с заявкой ===== */
+function supUser(sid){return DB.users.find(u=>u.supplierId===sid)}
+function reqAction(r,a,after){
+  if(a==='copy')return copyRequest(r);
+  if(a==='cancel')return cancelRequest(r,after);
+  if(a==='extend')return modal(`<h2>Продлить срок приёма</h2><label class="f"><span>Новый срок (МСК)</span><input type="datetime-local" id="nd" value="${toLocalInput(Math.max(new Date(r.deadline),now())+2*D)}"></label><span class="err-text" id="nde"></span><div class="row"><button class="sec" data-close>Отмена</button><button id="ok">Продлить</button></div>`,(m,close)=>{
+    $('#ok',m).onclick=()=>{const v=new Date($('#nd',m).value);if(!(v>now()+H)){$('#nde',m).textContent='Срок должен быть позже текущего момента';return}
+      r.deadline=v.getTime();r.status='collect';r.invitations.forEach(i=>{if(i.status==='expired')i.status=i.viewedAt?'viewed':'sent';const u=supUser(i.supplierId);u&&notify(u.id,`Срок приёма КП по заявке ${r.number} продлён до ${fdt(v)}`)});
+      hist(r,'Срок приёма продлён до '+fdt(v));audit('Продление срока',r.number);save();close();toast('Срок продлён, поставщики уведомлены','ok');after()}});
+  if(a==='remind'){const pend=r.invitations.filter(i=>['sent','viewed','draft'].includes(i.status));const ok=pend.filter(i=>!i.lastReminder||now()-i.lastReminder>=D);
+    if(!pend.length)return toast('Все приглашённые уже ответили');
+    if(!ok.length)return toast('Напоминание уже отправлялось менее 24 часов назад','err');
+    return confirmBox('Отправить напоминание?',`Напоминание получат ${ok.length} поставщ. без поданного КП.`,'Отправить',()=>{ok.forEach(i=>{i.lastReminder=now();const u=supUser(i.supplierId);u&&notify(u.id,`Напоминание: приём КП по заявке ${r.number} завершается ${fdt(r.deadline)}`)});hist(r,`Отправлено напоминание (${ok.length})`);save();toast('Напоминания отправлены','ok');after()})}
+  if(a==='close')return confirmBox('Завершить приём досрочно?','Поставщики больше не смогут подавать и изменять предложения.','Завершить приём',()=>{r.deadline=now();tick();hist(r,'Приём завершён досрочно');save();after()});
+  if(a==='complete')return confirmBox('Перевести заявку в «Завершена»?','Заявка будет перемещена в архив.','Завершить',()=>{r.status='done';hist(r,'Заявка завершена');audit('Завершение заявки',r.number);save();after()});
+  if(a==='invite'){const used=r.invitations.map(i=>i.supplierId);const cats=[...new Set(r.items.map(i=>i.cat))];const cand=DB.suppliers.filter(s=>s.status==='active'&&!used.includes(s.id)&&s.cats.some(c=>cats.includes(c)));
+    return modal(`<h2>Пригласить дополнительно</h2>${cand.length?cand.map(s=>`<label style="display:flex;gap:8px;padding:4px 0"><input type="checkbox" value="${s.id}">${esc(s.shortName)} <span class="small muted">${s.cats.map(c=>cat(c).name).join(', ')}</span></label>`).join(''):'<p class="muted">Нет других активных поставщиков по направлениям заявки.</p>'}
+      <label class="f" style="margin-top:12px"><span>Или пригласить по e-mail</span><input id="ie" type="email" placeholder="email@company.ru"></label><select id="ic">${cats.map(c=>`<option value="${c}">${esc(cat(c).name)}</option>`).join('')}</select>
+      <div class="row"><button class="sec" data-close>Отмена</button><button id="ok">Пригласить</button></div>`,(m,close)=>{$('#ok',m).onclick=()=>{
+        const ids=$$('input[type=checkbox]:checked',m).map(x=>x.value);const em=$('#ie',m).value.trim();let n=0;
+        ids.forEach(sid=>{r.invitations.push(newInv(sid));n++});if(em){r.invitations.push(inviteEmail(r,em,$('#ic',m).value));n++}
+        if(!n)return;hist(r,`Отправлено дополнительных приглашений: ${n}`);save();close();toast(`Отправлено приглашений: ${n}`,'ok');after()}})}
+}
+function newInv(sid){const s=supplier(sid);const u=supUser(sid);u&&notify(u.id,'Новое приглашение подать КП');return{id:uid(),supplierId:sid,email:s.email,status:'sent',sentAt:now(),viewedAt:null,offer:null,versions:[]}}
+function inviteEmail(r,email,catId){const ex=DB.suppliers.find(s=>s.email===email.toLowerCase());if(ex)return newInv(ex.id);
+  const tok=uid()+uid()+uid();const i={id:uid(),supplierId:null,email,catHint:catId,token:tok,status:'sent',sentAt:now(),offer:null,versions:[]};
+  setTimeout(()=>modal(`<h2>Письмо-приглашение (демо)</h2><p>На <b>${esc(email)}</b> отправлено приглашение с регистрационной ссылкой (действует 14 дней):</p><p><a href="#/register?token=${tok}" data-close>${location.origin+location.pathname}#/register?token=${tok}</a></p><div class="row"><button data-close>Закрыть</button></div>`),50);return i}
+
+/* ===== Экспорт ===== */
+function exportXlsx(r){
+  const subs=submitted(r);const cmp=[['№','Наименование','Ед. изм.','Кол-во',...subs.map(i=>supplier(i.supplierId).shortName+' (цена с НДС)'),'Мин.','Средняя','Макс.','Кол-во КП','Вариация, %']];
+  r.items.forEach(it=>{const v=subs.map(i=>lineCalc(it,i.offer.items[it.id])?.pv??null);const n=v.filter(x=>x!=null);const avg=n.length?n.reduce((a,b)=>a+b,0)/n.length:null;const sd=n.length>1?Math.sqrt(n.reduce((a,b)=>a+(b-avg)**2,0)/(n.length-1)):0;
+    cmp.push([it.line,it.name,it.unit,it.qty,...v.map(x=>x??'—'),n.length?Math.min(...n):'—',avg??'—',n.length?Math.max(...n):'—',n.length,avg&&n.length>1?+(sd/avg*100).toFixed(1):'—'])});
+  cmp.push(['','Итого','','',...subs.map(i=>offerTotals(r,i.offer).w)]);
+  const sup=[['Поставщик','ИНН','КПП','ОГРН','Контакт','Телефон','E-mail','Статус','Дата подачи','Сумма с НДС','Срок поставки, дн.','Оплата','КП действует до','Гарантия','Доставка включена']];
+  r.invitations.forEach(i=>{const s=supplier(i.supplierId)||{};const o=i.offer&&i.offer.status==='submitted'?i.offer:null;sup.push([s.shortName||i.email,s.inn||'',s.kpp||'',s.ogrn||'',s.contact||'',s.phone||'',i.email,INV[i.status][0],o?fdt(o.submittedAt):'',o?offerTotals(r,o).w:'',o?o.deliveryDays:'',o?o.payment:'',o?fd(o.validUntil):'',o?o.warranty:'',o?(o.deliveryIncl?'Да':'Нет'):''])});
+  const pos=[['№','Наименование','Характеристики','Ед. изм.','Количество','Направление'],...r.items.map(i=>[i.line,i.name,i.specs,i.unit,i.qty,cat(i.cat)?.name||''])];
+  if(window.XLSX){const wb=XLSX.utils.book_new();[['Сравнение',cmp],['Поставщики',sup],['Позиции',pos]].forEach(([n,d])=>{const ws=XLSX.utils.aoa_to_sheet(d);ws['!cols']=d[0].map((_,k)=>({wch:k===1?40:18}));XLSX.utils.book_append_sheet(wb,ws,n)});XLSX.writeFile(wb,`${r.number}_сравнение.xlsx`)}
+  else download(`${r.number}_сравнение.csv`,'﻿'+cmp.map(x=>x.join(';')).join('\n'),'text/csv');
+  toast('Файл выгружен','ok');
+}
+function exportZip(r){const subs=submitted(r);if(!subs.length)return toast('Нет поданных КП');
+  download(`${r.number}_файлы_КП.txt`,'Состав архива (демо):\n'+subs.map(i=>{const s=supplier(i.supplierId);return `${s.shortName}/\n  ${i.offer.file}\n${(i.offer.extra||[]).map(f=>'  '+f+'\n').join('')}`}).join(''));toast('В рабочей версии здесь скачивается ZIP-архив; в демо — его опись')}
+
+/* ===== Мастер создания заявки ===== */
+let wiz=null;
+function wizInit(){const id=route.q.id;const r=id&&reqById(id);
+  if(r&&r.status==='draft'){if(!wiz||wiz.id!==id)wiz={id,number:r.number,step:1,title:r.title,description:r.description,deadline:r.deadline,delivery:r.delivery,docs:[...r.docs],hidePrices:!!r.hidePrices,items:r.items.map(i=>({...i})),selected:null,extra:[]}}
+  else if(!wiz||wiz.id&&wiz.id!==id||id&&!r)wiz={id:null,number:null,step:1,title:'',description:'',deadline:now()+5*D,delivery:'',docs:[],hidePrices:false,items:[],selected:null,extra:[]}}
+function validateItem(i){i.err='';if(!String(i.name||'').trim())i.err='Пустое наименование';else{const q=Number(String(i.qty).replace(',','.'));if(!(q>0))i.err='Количество должно быть числом больше 0';else i.qty=q}}
+function pageWizard(){
+  wizInit();const w=wiz;const S=['Основные сведения','Загрузка позиций','Предпросмотр и проверка','Выбор поставщиков'];
+  let body='';
+  if(w.step===1)body=`<div class="card"><label class="f"><span>Наименование заявки *</span><input id="w_t" value="${esc(w.title)}" placeholder="например, «Канцтовары на II квартал 2026»" maxlength="300"></label><span class="err-text" id="e_t"></span>
+   <div class="grid2"><label class="f"><span>Номер заявки</span><input value="${w.number||'будет присвоен автоматически (КП-ГГГГ-NNNN)'}" disabled></label>
+   <label class="f"><span>Срок приёма КП (МСК) *</span><input type="datetime-local" id="w_d" value="${toLocalInput(w.deadline)}"><span class="err-text" id="e_d"></span></label></div>
+   <label class="f"><span>Описание / требования</span><textarea id="w_desc" maxlength="3000">${esc(w.description)}</textarea></label>
+   <label class="f"><span>Место / условия поставки</span><input id="w_del" value="${esc(w.delivery)}"></label>
+   <label class="f"><span>Прикреплённые документы (PDF, DOCX, XLSX; до 10 файлов по 20 МБ)</span><input type="file" id="w_docs" multiple accept=".pdf,.docx,.xlsx" style="height:auto;padding:6px"></label>
+   <div class="chips" id="docList">${w.docs.map((d,k)=>`<span>📄 ${esc(d)} <a href="#" data-rmdoc="${k}">✕</a></span>`).join('')}</div>
+   <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="w_hide" ${w.hidePrices?'checked':''}>Скрывать цены до окончания приёма</label></div>`;
+  if(w.step===2)body=`<div class="card"><div class="drop" id="drop" tabindex="0"><div style="font-size:32px">⬆</div><b>Перетащите файл сюда</b> или <button class="sec sm" id="pick">Выбрать файл</button><div class="small muted" style="margin-top:8px">.xlsx, .xls, .csv · до 10 МБ · до 1000 строк</div><input type="file" id="fileIn" accept=".xlsx,.xls,.csv" hidden></div>
+   <div id="perr" style="margin-top:12px"></div><div class="row" style="margin-top:12px"><button class="txt" id="tpl">⬇ Скачать шаблон</button><button class="txt" id="manual">+ Добавить позицию вручную</button>${w.items.length?`<span class="muted">Уже загружено позиций: ${w.items.length}</span>`:''}</div></div>`;
+  if(w.step===3){w.items.forEach(validateItem);const errs=w.items.filter(i=>i.err).length,noc=w.items.filter(i=>!i.err&&!i.cat).length;
+   body=`<div class="alert ${errs?'a-err':noc?'a-warn':'a-ok'}">Распознано ${w.items.length} позиций · ${errs} ошиб${errs===1?'ка':'ок'} · ${noc} без направления${errs?' — исправьте ошибки, чтобы продолжить':''}</div>
+   <div class="tw"><table><thead><tr><th class="num">№</th><th style="min-width:220px">Наименование *</th><th>Характеристики</th><th style="width:90px">Ед. изм.</th><th style="width:110px">Кол-во *</th><th style="min-width:220px">Направление</th><th></th></tr></thead><tbody>
+   ${w.items.map((i,k)=>`<tr class="${i.err?'bad':!i.cat?'nocat':''}"><td class="num">${k+1}</td><td><input data-k="${k}" data-f="name" value="${esc(i.name)}">${i.err?`<div class="err-text">${i.err}</div>`:''}</td><td><input data-k="${k}" data-f="specs" value="${esc(i.specs)}"></td><td><input data-k="${k}" data-f="unit" value="${esc(i.unit)}"></td><td><input data-k="${k}" data-f="qty" value="${esc(i.qty)}" inputmode="decimal"></td>
+   <td><select data-k="${k}" data-f="cat"><option value="">— выберите —</option>${DB.cats.filter(c=>c.active).map(c=>`<option value="${c.id}" ${i.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></td><td><button class="txt" data-del="${k}" aria-label="Удалить">✕</button></td></tr>`).join('')}</tbody></table></div>
+   <div class="row" style="margin-top:12px"><button class="sec" id="addRow">+ Добавить строку</button></div>`}
+  if(w.step===4){const cats=[...new Set(w.items.map(i=>i.cat))];
+   if(!w.selected)w.selected=DB.suppliers.filter(s=>s.status==='active'&&s.cats.some(c=>cats.includes(c))).map(s=>s.id);
+   const q=(w.q||'').toLowerCase();
+   body=`<div class="row" style="margin-bottom:12px"><input id="sq" placeholder="Поиск поставщика по наименованию или ИНН" value="${esc(w.q||'')}" style="max-width:360px"></div>
+   ${cats.map(c=>{const list=DB.suppliers.filter(s=>s.status==='active'&&s.cats.includes(c)&&(!q||(s.shortName+s.inn).toLowerCase().includes(q)));const nSel=DB.suppliers.filter(s=>s.status==='active'&&s.cats.includes(c)&&w.selected.includes(s.id)).length+w.extra.filter(e=>e.cat===c).length;
+    return `<div class="card" style="margin-bottom:12px"><div class="row"><h2 style="margin:0">${esc(cat(c).name)}</h2><span class="muted">позиций: ${w.items.filter(i=>i.cat===c).length} · выбрано: ${nSel}</span><div class="sp"></div><button class="txt sm" data-all="${c}">Выбрать все</button><button class="txt sm" data-none="${c}">Снять все</button></div>
+    ${nSel<3?`<div class="alert a-warn" style="margin-top:8px">По направлению выбрано менее 3 поставщиков — конкурентность может быть недостаточной.</div>`:''}
+    ${list.length?`<table style="margin-top:8px"><tbody>${list.map(s=>`<tr><td style="width:32px"><input type="checkbox" data-sup="${s.id}" ${w.selected.includes(s.id)?'checked':''} aria-label="${esc(s.shortName)}"></td><td><b>${esc(s.shortName)}</b><div class="small muted">ИНН ${s.inn}</div></td><td class="chips">${s.cats.map(x=>`<span>${esc(cat(x).name)}</span>`).join('')}</td><td class="num small">видно позиций: ${w.items.filter(i=>s.cats.includes(i.cat)).length}</td></tr>`).join('')}</tbody></table>`:'<p class="muted">Нет активных поставщиков по направлению.</p>'}</div>`}).join('')}
+   <div class="card"><h2>Пригласить по e-mail</h2><div class="row"><input id="xe" type="email" placeholder="email@company.ru" style="max-width:280px"><select id="xc" style="max-width:280px">${cats.map(c=>`<option value="${c}">${esc(cat(c).name)}</option>`).join('')}</select><button class="sec" id="xadd">Добавить</button></div>
+   <div class="chips" style="margin-top:8px">${w.extra.map((e,k)=>`<span>${esc(e.email)} · ${esc(cat(e.cat).name)} <a href="#" data-rmx="${k}">✕</a></span>`).join('')}</div></div>`}
+  const canNext=w.step!==3||(w.items.length&&!w.items.some(i=>i.err||!i.cat));
+  const html=`<div class="small"><a href="#/">← Все заявки</a></div><div class="page-head" style="margin-top:8px"><h1>${w.id?'Черновик '+w.number:'Новая заявка на сбор КП'}</h1></div>
+  <div class="steps">${S.map((t,k)=>`<div class="${k+1===w.step?'on':k+1<w.step?'done':''}">Шаг ${k+1}${k+1<w.step?' ✓':''}<b>${t}</b></div>`).join('')}</div>${body}
+  <div class="row" style="margin-top:20px">${w.step>1?'<button class="sec" id="back">← Назад</button>':''}<div class="sp"></div><button class="sec" id="saveDraft">Сохранить черновик</button>
+  ${w.step<4?`<button id="next" ${canNext?'':'disabled title="Исправьте ошибки и укажите направления"'}>Далее →</button>`:'<button id="pub">Опубликовать и разослать приглашения</button>'}</div>`;
+  $('#app').innerHTML=shell(html,'req');bindShell();wizBind();
+}
+function wizStep1Save(){const w=wiz;if(w.step!==1)return true;w.title=$('#w_t').value.trim();w.description=$('#w_desc').value;w.delivery=$('#w_del').value;w.hidePrices=$('#w_hide').checked;const d=new Date($('#w_d').value).getTime();w.deadline=d||w.deadline;
+  let ok=true;$('#e_t').textContent=w.title?'':(ok=false,'Обязательное поле');$('#e_d').textContent=d&&d>=now()+D?'':(ok=false,'Срок — не раньше чем через 24 часа');return ok}
+function wizBind(){const w=wiz;
+  $('#back')&&($('#back').onclick=()=>{if(w.step===1)wizStep1Save();w.step--;pageWizard()});
+  $('#next')&&($('#next').onclick=()=>{if(!wizStep1Save())return;if(w.step===2&&!w.items.length)return toast('Загрузите файл или добавьте позиции вручную','err');w.step++;pageWizard()});
+  $('#saveDraft').onclick=()=>{if(w.step===1&&!$('#w_t').value.trim()){$('#e_t').textContent='Укажите наименование';return}if(w.step===1)wizStep1Save();const r=wizPersist();toast('Черновик '+r.number+' сохранён','ok');go('/requests/new?id='+r.id)};
+  $('#pub')&&($('#pub').onclick=()=>{const n=w.selected.length+w.extra.length;if(!n)return toast('Выберите хотя бы одного поставщика','err');
+    confirmBox('Публикация заявки',`Будет отправлено ${n} приглашени${n%10===1&&n%100!==11?'е':n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'я':'й'}. Продолжить?`,'Опубликовать',()=>{const r=wizPersist();r.status='collect';r.publishedAt=now();
+      r.invitations=[...w.selected.map(newInv),...w.extra.map(e=>inviteEmail(r,e.email,e.cat))];hist(r,`Заявка опубликована, отправлено ${n} приглашений`);audit('Публикация заявки',r.number);save();wiz=null;toast('Заявка опубликована, приглашения разосланы','ok');go('/requests/'+r.id)})});
+  if(w.step===1){$('#w_docs').onchange=e=>{const fs=[...e.target.files].filter(f=>f.size<=20*1024*1024).map(f=>f.name);w.docs=[...w.docs,...fs].slice(0,10);wizStep1Save();pageWizard()};
+    $$('[data-rmdoc]').forEach(a=>a.onclick=e=>{e.preventDefault();w.docs.splice(+a.dataset.rmdoc,1);wizStep1Save();pageWizard()})}
+  if(w.step===2){const inp=$('#fileIn'),dr=$('#drop');$('#pick').onclick=e=>{e.stopPropagation();inp.click()};dr.onclick=()=>inp.click();dr.onkeydown=e=>{if(e.key==='Enter')inp.click()};
+    inp.onchange=()=>inp.files[0]&&parseFile(inp.files[0]);
+    dr.ondragover=e=>{e.preventDefault();dr.classList.add('over')};dr.ondragleave=()=>dr.classList.remove('over');dr.ondrop=e=>{e.preventDefault();dr.classList.remove('over');e.dataTransfer.files[0]&&parseFile(e.dataTransfer.files[0])};
+    $('#tpl').onclick=downloadTemplate;$('#manual').onclick=()=>{w.items.push({id:uid(),name:'',specs:'',unit:'шт',qty:1,cat:''});w.step=3;pageWizard()}}
+  if(w.step===3){$$('[data-f]').forEach(el=>el.onchange=()=>{const i=w.items[+el.dataset.k];i[el.dataset.f]=el.value;if(el.dataset.f==='name'&&!i.cat)i.cat=detectCat(el.value)||'';pageWizard()});
+    $$('[data-del]').forEach(b=>b.onclick=()=>{w.items.splice(+b.dataset.del,1);pageWizard()});$('#addRow').onclick=()=>{w.items.push({id:uid(),name:'',specs:'',unit:'шт',qty:1,cat:''});pageWizard()}}
+  if(w.step===4){$$('[data-sup]').forEach(c=>c.onchange=()=>{const id=c.dataset.sup;w.selected=c.checked?[...new Set([...w.selected,id])]:w.selected.filter(x=>x!==id);pageWizard()});
+    $$('[data-all]').forEach(b=>b.onclick=()=>{DB.suppliers.filter(s=>s.status==='active'&&s.cats.includes(b.dataset.all)).forEach(s=>w.selected.includes(s.id)||w.selected.push(s.id));pageWizard()});
+    $$('[data-none]').forEach(b=>b.onclick=()=>{const ids=DB.suppliers.filter(s=>s.cats.includes(b.dataset.none)).map(s=>s.id);w.selected=w.selected.filter(x=>!ids.includes(x));pageWizard()});
+    $('#sq').oninput=e=>{w.q=e.target.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{pageWizard();const i=$('#sq');i.focus();i.setSelectionRange(99,99)},300)};
+    $('#xadd').onclick=()=>{const em=$('#xe').value.trim();if(!/^\S+@\S+\.\S+$/.test(em))return toast('Укажите корректный e-mail','err');w.extra.push({email:em,cat:$('#xc').value});pageWizard()};
+    $$('[data-rmx]').forEach(a=>a.onclick=e=>{e.preventDefault();w.extra.splice(+a.dataset.rmx,1);pageWizard()})}
+}
+function wizPersist(){const w=wiz;let r=w.id&&reqById(w.id);
+  if(!r){r={id:'r'+uid(),number:nextNumber(),status:'draft',createdBy:me().id,createdAt:now(),invitations:[],history:[],lastSeen:now()};DB.requests.unshift(r);hist(r,'Черновик создан');audit('Создание заявки',r.number);w.id=r.id;w.number=r.number}
+  Object.assign(r,{title:w.title||'Без названия',description:w.description,deadline:w.deadline,delivery:w.delivery,docs:w.docs,hidePrices:w.hidePrices,items:w.items.map((i,k)=>({id:i.id||uid(),line:k+1,name:i.name,specs:i.specs||'',unit:i.unit||'шт',qty:Number(String(i.qty).replace(',','.'))||0,cat:i.cat}))});save();return r}
+const SYN={name:['наименование','товар','наименование товара','наименование позиции','позиция'],specs:['характеристики','описание','характеристика','технические характеристики'],unit:['ед. изм.','ед.изм.','ед изм','единица','ед.','еи','единица измерения'],qty:['количество','кол-во','кол.','объём','объем'],cat:['направление','категория']};
+function parseFile(f){const out=$('#perr');if(f.size>10*1024*1024){out.innerHTML='<div class="alert a-err">Файл больше 10 МБ</div>';return}
+  if(!/\.(xlsx|xls|csv)$/i.test(f.name)){out.innerHTML='<div class="alert a-err">Поддерживаются только .xlsx, .xls, .csv</div>';return}
+  const rd=new FileReader();rd.onload=()=>{let rows;try{if(window.XLSX){const wb=XLSX.read(rd.result,{type:'array',codepage:65001});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''})}else{const t=new TextDecoder().decode(rd.result);rows=t.split(/\r?\n/).map(l=>l.split(/[;\t,]/))}}catch(e){out.innerHTML='<div class="alert a-err">Не удалось прочитать файл</div>';return}
+    const hi=rows.findIndex(r=>r.some(c=>SYN.name.includes(String(c).trim().toLowerCase().replace(/\*$/,''))));
+    const head=(rows[hi]||[]).map(c=>String(c).trim().toLowerCase().replace(/\*$/,'').trim());const col={};Object.entries(SYN).forEach(([k,s])=>{const i=head.findIndex(h=>s.includes(h));if(i>=0)col[k]=i});
+    const tpl='<a href="#" onclick="downloadTemplate();return false">Скачайте шаблон</a>';
+    if(col.name==null){out.innerHTML=`<div class="alert a-err">Не найден столбец «Наименование». ${tpl}</div>`;return}
+    if(col.qty==null){out.innerHTML=`<div class="alert a-err">Не найден столбец «Количество». ${tpl}</div>`;return}
+    const data=rows.slice(hi+1).filter(r=>r.some(c=>String(c).trim()!==''));if(data.length>1000){out.innerHTML='<div class="alert a-err">В файле больше 1000 строк</div>';return}
+    wiz.items=data.map(r=>{const g=k=>col[k]!=null?String(r[col[k]]??'').trim():'';const cname=g('cat');const cc=cname&&DB.cats.find(c=>c.name.toLowerCase()===cname.toLowerCase());
+      return{id:uid(),name:g('name'),specs:g('specs'),unit:g('unit')||'шт',qty:g('qty').replace(/\s/g,''),cat:cc?cc.id:detectCat(g('name')+' '+g('specs'))||''}});
+    toast(`Распознано позиций: ${wiz.items.length}`,'ok');wiz.step=3;pageWizard()};rd.readAsArrayBuffer(f)}
+function downloadTemplate(){const d=[['№','Наименование*','Характеристики','Ед. изм.*','Количество*','Направление'],[1,'Бумага офисная А4','80 г/м², 500 л., белизна 146%','пачка',200,'Канцелярские товары'],[2,'Картридж HP 59A','оригинальный','шт',15,'Расходные материалы для оргтехники'],[3,'Степлер №24/6','до 25 листов','шт',10,''],[4,'Кресло офисное','сетчатая спинка','шт',5,'']];
+  if(window.XLSX){const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(d);ws['!cols']=[{wch:5},{wch:36},{wch:32},{wch:10},{wch:12},{wch:34}];XLSX.utils.book_append_sheet(wb,ws,'Позиции');XLSX.writeFile(wb,'template_positions.xlsx')}
+  else download('template_positions.csv','﻿'+d.map(r=>r.join(';')).join('\n'),'text/csv')}
+
+/* ===== Кабинет поставщика ===== */
+let supTab='active',autoT=null;
+function myInvs(){const sid=me().supplierId;const out=[];DB.requests.forEach(r=>{if(r.status==='draft')return;r.invitations.forEach(i=>{if(i.supplierId===sid)out.push({r,i})})});return out}
+function pageSupHome(){
+  const all=myInvs();const isAct=x=>x.r.status==='collect'&&['sent','viewed','draft'].includes(x.i.status);const isSub=x=>x.r.status==='collect'&&['submitted','changed'].includes(x.i.status);
+  const list=all.filter(x=>supTab==='active'?isAct(x):supTab==='submitted'?isSub(x):!isAct(x)&&!isSub(x)).sort((a,b)=>new Date(a.r.deadline)-new Date(b.r.deadline));
+  const act=x=>{if(x.r.status!=='collect')return['Просмотр','sec'];return{sent:['Подать КП',''],viewed:['Подать КП',''],draft:['Продолжить',''],submitted:['Изменить','sec'],changed:['Изменить','sec']}[x.i.status]||['Просмотр','sec']};
+  const st=x=>x.r.status==='cancel'?'<span class="badge b-red">Заявка отменена</span>':invBadge(x.i.status,true);
+  const cnt=t=>all.filter(x=>t==='active'?isAct(x):t==='submitted'?isSub(x):!isAct(x)&&!isSub(x)).length;
+  const html=`<div class="page-head"><h1>Мои приглашения</h1></div>
+  <div class="tabs">${[['active','Активные'],['submitted','Поданные'],['archive','Архив']].map(([k,t])=>`<button class="${supTab===k?'on':''}" data-st="${k}">${t} (${cnt(k)})</button>`).join('')}</div>
+  ${list.length?`<div class="tw desk"><table><thead><tr><th>Номер заявки</th><th>Наименование</th><th class="num">Мои позиции</th><th>Срок приёма</th><th>Статус</th><th></th></tr></thead><tbody>
+  ${list.map(x=>{const[a,c]=act(x);return `<tr><td><a href="#/invitations/${x.r.id}">${x.r.number}</a></td><td>${esc(x.r.title)}</td><td class="num">${supItems(x.r,me().supplierId).length}</td><td>${fdt(x.r.deadline)}<div class="small muted">${x.r.status==='collect'?left(x.r.deadline):''}</div></td><td>${st(x)}</td><td><button class="${c} sm" onclick="go('/invitations/${x.r.id}')">${a}</button></td></tr>`}).join('')}</tbody></table></div>
+  <div class="mcards">${list.map(x=>{const[a,c]=act(x);return `<div class="mcard"><div class="row"><b>${x.r.number}</b><div class="sp"></div>${st(x)}</div><div>${esc(x.r.title)}</div><div class="small muted">Позиций: ${supItems(x.r,me().supplierId).length} · до ${fdt(x.r.deadline)}${x.r.status==='collect'?' · '+left(x.r.deadline):''}</div><button class="${c} sm" style="margin-top:8px" onclick="go('/invitations/${x.r.id}')">${a}</button></div>`}).join('')}</div>`
+  :`<div class="card empty">${supTab==='active'?'Активных приглашений нет. Когда ОЦЭ пригласит вас подать КП, приглашение появится здесь.':'Здесь пока пусто'}</div>`}`;
+  $('#app').innerHTML=shell(html,'inv');bindShell();$$('[data-st]').forEach(b=>b.onclick=()=>{supTab=b.dataset.st;pageSupHome()});
+}
+function pageInvitation(id){
+  const r=reqById(id);const sid=me().supplierId;const inv=r&&r.invitations.find(i=>i.supplierId===sid);
+  if(!r||!inv||r.status==='draft'){$('#app').innerHTML=shell('<div class="card empty">Заявка не найдена или недоступна (403)</div>','inv');bindShell();return}
+  if(inv.status==='sent'){inv.status='viewed';inv.viewedAt=now();hist(r,'Поставщик открыл заявку');save()}
+  const items=supItems(r,sid);const open=r.status==='collect'&&new Date(r.deadline)>now();const isSub=['submitted','changed'].includes(inv.status);
+  const editing=open&&inv.status!=='declined'&&(!isSub||route.q.edit==='1');
+  if(!inv.draft)inv.draft=JSON.parse(JSON.stringify(inv.offer&&inv.offer.status==='submitted'?inv.offer:(inv.offer||{items:{},deliveryIncl:true})));
+  const o=editing?inv.draft:(inv.offer||inv.draft);o.items=o.items||{};
+  const spec=DB.users.find(u=>u.id===r.createdBy)||{};const mob=matchMedia('(max-width:767px)').matches;
+  const vatSel=(k,v,dis)=>`<select data-k="${k}" data-f="vat" ${dis}>${[['20','20 %'],['10','10 %'],['0','0 %'],['none','Без НДС']].map(([a,b])=>`<option value="${a}" ${String(v??'20')===a?'selected':''}>${b}</option>`).join('')}</select>`;
+  const dis=editing?'':'disabled';
+  const rowsT=items.map(it=>{const x=o.items[it.id]||{};const c=lineCalc(it,x);return `<tr data-row="${it.id}"><td class="num">${it.line}</td><td>${esc(it.name)}</td><td class="muted small">${esc(it.specs)}</td><td>${esc(it.unit)}</td><td class="num">${qtyf(it.qty)}</td>
+   <td style="min-width:120px"><input data-k="${it.id}" data-f="price" inputmode="decimal" value="${x.price??''}" ${dis||x.ns?'disabled':''} aria-label="Цена без НДС"></td><td style="min-width:110px">${vatSel(it.id,x.vat,dis||(x.ns?'disabled':''))}</td>
+   <td class="num" data-c="pv">${c?money(c.pv,false):'—'}</td><td class="num" data-c="sum">${c?money(c.sum,false):'—'}</td><td style="min-width:150px"><input data-k="${it.id}" data-f="manuf" value="${esc(x.manuf||'')}" ${dis}></td><td style="min-width:140px"><input data-k="${it.id}" data-f="comment" value="${esc(x.comment||'')}" ${dis}></td>
+   <td><label class="small" style="display:flex;gap:4px;align-items:center;white-space:nowrap"><input type="checkbox" data-k="${it.id}" data-f="ns" ${x.ns?'checked':''} ${dis}>Не поставляем</label></td></tr>`}).join('');
+  const rowsM=items.map(it=>{const x=o.items[it.id]||{};const c=lineCalc(it,x);return `<div class="mcard" data-row="${it.id}"><b>${it.line}. ${esc(it.name)}</b><div class="small muted">${esc(it.specs)} · ${qtyf(it.qty)} ${esc(it.unit)}</div>
+   <div class="grid2" style="margin-top:8px"><label class="f"><span>Цена без НДС, ₽</span><input data-k="${it.id}" data-f="price" inputmode="decimal" value="${x.price??''}" ${dis||x.ns?'disabled':''}></label><label class="f"><span>НДС</span>${vatSel(it.id,x.vat,dis||(x.ns?'disabled':''))}</label></div>
+   <div class="small">С НДС: <b data-c="pv">${c?money(c.pv,false):'—'}</b> · Сумма: <b data-c="sum">${c?money(c.sum,false):'—'}</b></div>
+   <label class="f" style="margin-top:8px"><span>Производитель / страна</span><input data-k="${it.id}" data-f="manuf" value="${esc(x.manuf||'')}" ${dis}></label><label class="small" style="display:flex;gap:6px"><input type="checkbox" data-k="${it.id}" data-f="ns" ${x.ns?'checked':''} ${dis}>Не поставляем</label></div>`}).join('');
+  const tt=offerTotals(r,o,items);
+  const banner=inv.status==='declined'?`<div class="alert a-err">Вы отказались от участия: ${esc(inv.declineReason)}</div>`:r.status==='cancel'?'<div class="alert a-err">Заявка отменена заказчиком</div>':!open?`<div class="alert a-warn">Срок приёма истёк — подача и изменение КП недоступны.</div>`:isSub&&!editing?`<div class="alert a-ok">✓ Предложение подано ${fdt(inv.offer.submittedAt)}${inv.status==='changed'?' (изменено)':''}. До окончания срока вы можете его изменить.</div>`:'';
+  const html=`<div class="small"><a href="#/">← Мои приглашения</a></div>
+  <div class="page-head" style="margin-top:8px"><div><div class="row"><h1>${r.number}</h1>${invBadge(inv.status,true)}</div><div style="font-size:16px">${esc(r.title)}</div><div class="small muted">Срок приёма: <b>${fdt(r.deadline)} МСК</b>${open?' · '+left(r.deadline):''}</div></div><div class="sp"></div>
+  ${isSub&&open&&!editing?`<button onclick="go('/invitations/${r.id}?edit=1')">Изменить предложение</button>`:''}${open&&!isSub&&inv.status!=='declined'?'<button class="danger" id="decl">Отказаться</button>':''}</div>${banner}
+  <div class="grid2" style="gap:16px;margin-bottom:16px"><div class="card"><h2>Сведения о заявке</h2><dl class="kv"><dt>Описание</dt><dd>${esc(r.description)||'—'}</dd><dt>Условия поставки</dt><dd>${esc(r.delivery)||'—'}</dd><dt>Документы</dt><dd>${r.docs.length?r.docs.map(d=>`<a href="#" data-file="${esc(d)}">📄 ${esc(d)}</a>`).join('<br>'):'—'}</dd></dl></div>
+  <div class="card"><h2>Контактное лицо ОЦЭ</h2><dl class="kv"><dt>ФИО</dt><dd>${esc(spec.name)}</dd><dt>E-mail</dt><dd><a href="mailto:${esc(spec.email)}">${esc(spec.email)}</a></dd><dt>Телефон</dt><dd>${esc(spec.phone)}</dd></dl></div></div>
+  <div class="card" style="margin-bottom:16px"><div class="row" style="margin-bottom:12px"><h2 style="margin:0">Позиции вашего направления (${items.length})</h2><div class="sp"></div>
+  ${editing?`<select id="vatAll" style="max-width:130px"><option value="20">20 %</option><option value="10">10 %</option><option value="0">0 %</option><option value="none">Без НДС</option></select><button class="sec sm" id="vatApply">Применить ко всем</button><button class="txt sm" id="expItems">⬇ Скачать таблицу (Excel)</button><button class="txt sm" id="impBtn">⬆ Загрузить заполненную</button><input type="file" id="impIn" accept=".xlsx,.xls,.csv" hidden>`:''}</div>
+  ${mob?rowsM:`<div class="tw"><table><thead><tr><th class="num">№</th><th>Наименование</th><th>Характеристики</th><th>Ед.</th><th class="num">Кол-во</th><th>Цена за ед. без НДС, ₽ *</th><th>Ставка НДС *</th><th class="num">Цена с НДС, ₽</th><th class="num">Сумма с НДС, ₽</th><th>Производитель / страна</th><th>Комментарий</th><th></th></tr></thead><tbody>${rowsT}</tbody></table></div>`}
+  <div class="row" style="justify-content:flex-end;margin-top:12px;gap:24px" id="totals">${totHtml(tt)}</div></div>
+  <div class="card"><h2>Условия предложения</h2><form id="cond"><div class="grid2">
+   <label class="f"><span>Срок поставки, календарных дней *</span><input name="deliveryDays" type="number" min="1" value="${esc(o.deliveryDays||'')}" ${dis}></label>
+   <label class="f"><span>Условия оплаты (предоплата %, отсрочка дней) *</span><input name="payment" value="${esc(o.payment||'')}" placeholder="напр. Отсрочка 30 дней" ${dis}></label>
+   <label class="f"><span>Срок действия КП (до даты) *</span><input name="validUntil" type="date" value="${o.validUntil?new Date(o.validUntil).toISOString().slice(0,10):''}" ${dis}></label>
+   <label class="f"><span>Гарантийный срок</span><input name="warranty" value="${esc(o.warranty||'')}" ${dis}></label>
+   <label class="f"><span>Доставка включена в стоимость *</span><select name="deliveryIncl" ${dis}><option value="1" ${o.deliveryIncl?'selected':''}>Да</option><option value="0" ${o.deliveryIncl?'':'selected'}>Нет</option></select></label>
+   <label class="f"><span>Файл подписанного КП (PDF) *</span>${editing?'<input name="file" type="file" accept=".pdf" style="height:auto;padding:6px">':''}<span class="small">${o.file?'📄 '+esc(o.file):'<span class="muted">не загружен</span>'}</span></label></div>
+   <label class="f"><span>Комментарий к предложению</span><textarea name="comment" ${dis}>${esc(o.comment||'')}</textarea></label>
+   <label class="f"><span>Дополнительные файлы (сертификаты, каталоги; до 10 файлов)</span>${editing?'<input name="extra" type="file" multiple style="height:auto;padding:6px">':''}<span class="small">${(o.extra||[]).map(esc).join(', ')||'—'}</span></label>
+   <div id="cerr" class="err-text"></div></form>
+   ${editing?`<div class="row" style="margin-top:12px"><span class="small muted" id="autosave">Автосохранение каждые 30 секунд</span><div class="sp"></div>${isSub?`<button class="txt" onclick="go('/invitations/${r.id}')">Отмена</button>`:''}<button class="sec" id="sDraft">Сохранить черновик</button><button id="sSubmit">Подать предложение</button></div>`:''}</div>`;
+  $('#app').innerHTML=shell(html,'inv');bindShell();
+  $$('[data-file]').forEach(a=>a.onclick=e=>{e.preventDefault();download(a.dataset.file,'Демо-файл')});
+  $('#decl')&&($('#decl').onclick=()=>declineDlg(r,inv));
+  if(!editing)return;
+  const readCond=()=>{const f=$('#cond');o.deliveryDays=f.deliveryDays.value;o.payment=f.payment.value.trim();o.validUntil=f.validUntil.value?new Date(f.validUntil.value).getTime():'';o.warranty=f.warranty.value;o.deliveryIncl=f.deliveryIncl.value==='1';o.comment=f.comment.value};
+  $('#cond').file.onchange=e=>{const f=e.target.files[0];if(f&&!/\.pdf$/i.test(f.name))return toast('Нужен файл PDF','err');if(f){o.file=f.name;readCond();pageInvitation(id)}};
+  $('#cond').extra.onchange=e=>{o.extra=[...(o.extra||[]),...[...e.target.files].map(f=>f.name)].slice(0,10);readCond();pageInvitation(id)};
+  const recalc=k=>{const it=items.find(x=>x.id===k);const c=lineCalc(it,o.items[k]);$$(`[data-row="${k}"]`).forEach(row=>{$('[data-c=pv]',row).textContent=c?money(c.pv,false):'—';$('[data-c=sum]',row).textContent=c?money(c.sum,false):'—'});$('#totals').innerHTML=totHtml(offerTotals(r,o,items))};
+  $$('[data-f]').forEach(el=>{const h=()=>{const k=el.dataset.k,f=el.dataset.f;o.items[k]=o.items[k]||{vat:'20'};
+    if(f==='ns'){o.items[k].ns=el.checked;readCond();pageInvitation(id);return}
+    if(f==='price'){const v=el.value.replace(/\s/g,'').replace(',','.');o.items[k].price=v===''?null:v;el.style.borderColor=v===''||Number(v)>=0.01?'':'var(--err)'}else o.items[k][f]=el.value;
+    if(!o.items[k].vat)o.items[k].vat='20';recalc(k)};el.oninput=h;el.onchange=h});
+  $('#vatApply').onclick=()=>{const v=$('#vatAll').value;items.forEach(it=>{o.items[it.id]=o.items[it.id]||{};o.items[it.id].vat=v});readCond();pageInvitation(id)};
+  $('#expItems').onclick=()=>{const d=[['№','Наименование','Характеристики','Ед. изм.','Количество','Цена за ед. без НДС','Ставка НДС (20/10/0/none)','Производитель / страна','Комментарий'],...items.map(it=>{const x=o.items[it.id]||{};return[it.line,it.name,it.specs,it.unit,it.qty,x.price??'',x.vat??'20',x.manuf||'',x.comment||'']})];
+    if(window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'Позиции');XLSX.writeFile(wb,`${r.number}_позиции.xlsx`)}};
+  $('#impBtn').onclick=()=>$('#impIn').click();
+  $('#impIn').onchange=e=>{const f=e.target.files[0];if(!f||!window.XLSX)return;const rd=new FileReader();rd.onload=()=>{const wb=XLSX.read(rd.result,{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''}).slice(1);let n=0;
+    rows.forEach(row=>{const it=items.find(x=>String(x.line)===String(row[0]).trim());if(!it)return;const p=String(row[5]).replace(/\s/g,'').replace(',','.');if(p!==''){o.items[it.id]={...(o.items[it.id]||{}),price:p,vat:String(row[6]||'20').replace('%','').trim()||'20',manuf:row[7]||'',comment:row[8]||''};n++}});
+    readCond();inv.draft=o;save();toast(`Загружено цен: ${n}`,'ok');pageInvitation(id)};rd.readAsArrayBuffer(f)};
+  const saveDraft=(silent)=>{readCond();inv.draft=o;if(!isSub){inv.offer={...o,status:'draft'};if(inv.status!=='draft'){inv.status='draft'}}save();if(!silent)toast('Черновик сохранён','ok');else $('#autosave')&&($('#autosave').textContent='Черновик сохранён автоматически в '+fdt(now()).slice(11))};
+  $('#sDraft').onclick=()=>saveDraft(false);clearInterval(autoT);autoT=setInterval(()=>{if(location.hash.startsWith('#/invitations/'+id)&&$('#sDraft'))saveDraft(true);else clearInterval(autoT)},30000);
+  $('#sSubmit').onclick=()=>{readCond();const er=[];let filled=0;
+    items.forEach(it=>{const x=o.items[it.id]||{};if(x.ns)return;if(!(Number(x.price)>=0.01))er.push(`позиция ${it.line}: укажите цену ≥ 0,01 или отметьте «Не поставляем»`);else filled++});
+    if(!filled)er.push('нужно указать цену хотя бы по одной позиции');if(!(Number(o.deliveryDays)>0))er.push('срок поставки');if(!o.payment)er.push('условия оплаты');if(!o.validUntil)er.push('срок действия КП');if(!o.file)er.push('файл подписанного КП (PDF)');
+    if(er.length){$('#cerr').innerHTML='Заполните: '+er.slice(0,6).map(esc).join('; ')+(er.length>6?' …':'');toast('Проверьте обязательные поля','err');return}
+    if(new Date(r.deadline)<=now())return toast('Срок приёма истёк','err');
+    const t=offerTotals(r,o,items);confirmBox('Подать предложение?',`Итого с НДС: <b>${money(t.w)}</b> по ${t.cnt} из ${items.length} позиций.`,'Подать',()=>{
+      items.forEach(it=>{const x=o.items[it.id];if(x&&!x.ns)x.price=Math.round(Number(x.price)*100)/100});
+      const was=isSub;inv.offer={...JSON.parse(JSON.stringify(o)),status:'submitted',submittedAt:now()};inv.draft=null;inv.versions=[...(inv.versions||[]),now()];inv.status=was?'changed':'submitted';
+      hist(r,was?'КП изменено':'Подано КП');notify(r.createdBy,`${was?'Изменено':'Поступило'} КП от ${supplier(sid).shortName} по заявке ${r.number}`);notify(me().id,`Ваше КП по заявке ${r.number} принято`);audit(was?'Изменение КП':'Подача КП',r.number);save();clearInterval(autoT);
+      modal(`<div style="text-align:center"><div style="font-size:40px;color:var(--ok)">✓</div><h2>Предложение ${was?'изменено':'подано'}</h2><p>Заявка ${r.number}<br>Время подачи: ${fdt(inv.offer.submittedAt)} МСК<br>Версия: ${inv.versions.length}</p><p class="small muted">Подтверждение отправлено на ${esc(me().email)}</p><button data-close>Готово</button></div>`);go('/invitations/'+r.id)})};
+}
+const totHtml=t=>`<div>Сумма без НДС: <b class="num">${money(t.no)}</b></div><div>НДС: <b class="num">${money(t.vat)}</b></div><div style="font-size:16px">Итого с НДС: <b class="num">${money(t.w)}</b></div>`;
+function declineDlg(r,inv){modal(`<h2>Отказаться от участия</h2><label class="f"><span>Причина *</span><select id="dr">${DECLINE.map(d=>`<option>${d}</option>`).join('')}</select></label><label class="f"><span>Комментарий</span><textarea id="dc"></textarea></label><span class="err-text" id="de"></span><div class="row"><button class="sec" data-close>Отмена</button><button class="danger" id="ok">Отказаться</button></div>`,(m,close)=>{
+  $('#ok',m).onclick=()=>{const v=$('#dr',m).value,c=$('#dc',m).value.trim();if(v==='Другое'&&!c){$('#de',m).textContent='Опишите причину';return}inv.status='declined';inv.declineReason=v+(c?': '+c:'');hist(r,'Отказ от участия: '+inv.declineReason);notify(r.createdBy,`${supplier(inv.supplierId).shortName} отказался от участия в заявке ${r.number}`);save();close();toast('Отказ зарегистрирован');pageInvitation(r.id)}})}
+
+/* ===== Справочник поставщиков и модерация ===== */
+let supF={q:'',cat:'',status:''};
+const SST={active:['Активен','b-green'],pending:['На модерации','b-amber'],blocked:['Заблокирован','b-red'],rejected:['Отклонён','b-red']};
+const offersCount=sid=>DB.requests.reduce((s,r)=>s+r.invitations.filter(i=>i.supplierId===sid&&i.offer&&i.offer.status==='submitted').length,0);
+function pageSuppliers(){
+  const list=DB.suppliers.filter(s=>(!supF.cat||s.cats.includes(supF.cat))&&(!supF.status||s.status===supF.status)&&(!supF.q||(s.shortName+s.inn+s.email).toLowerCase().includes(supF.q.toLowerCase())));
+  const html=`<div class="page-head"><h1>Справочник поставщиков</h1><div class="sp"></div><button id="addSup">+ Добавить поставщика</button></div>
+  <div class="card" style="margin-bottom:16px;padding:14px 16px"><div class="row"><input id="sq" placeholder="Наименование, ИНН или e-mail" value="${esc(supF.q)}" style="max-width:300px">
+  <select id="sc" style="max-width:260px"><option value="">Все направления</option>${DB.cats.map(c=>`<option value="${c.id}" ${supF.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+  <select id="ss" style="max-width:180px"><option value="">Все статусы</option>${Object.entries(SST).map(([k,v])=>`<option value="${k}" ${supF.status===k?'selected':''}>${v[0]}</option>`).join('')}</select></div></div>
+  <div class="tw"><table><thead><tr><th>Наименование</th><th>ИНН</th><th>Направления</th><th>Контакт</th><th>Статус</th><th>Регистрация</th><th class="num">Подано КП</th><th></th></tr></thead><tbody>
+  ${list.map(s=>`<tr><td><b>${esc(s.shortName)}</b></td><td>${s.inn||'—'}</td><td class="chips">${s.cats.map(c=>`<span>${esc(cat(c)?.name)}</span>`).join('')}</td><td class="small">${esc(s.contact)}<br>${esc(s.email)}<br>${esc(s.phone)}</td><td><span class="badge ${SST[s.status][1]}">${SST[s.status][0]}</span></td><td>${fd(s.created)}</td><td class="num">${offersCount(s.id)}</td>
+  <td>${s.status==='active'?`<button class="txt sm" data-blk="${s.id}">Заблокировать</button>`:s.status==='blocked'?`<button class="txt sm" data-unb="${s.id}">Разблокировать</button>`:s.status==='pending'?`<a href="#/suppliers/moderation">Модерация</a>`:''}</td></tr>`).join('')||'<tr><td colspan="8" class="empty">Ничего не найдено</td></tr>'}</tbody></table></div>`;
+  $('#app').innerHTML=shell(html,'sup');bindShell();
+  $('#sq').oninput=e=>{supF.q=e.target.value;clearTimeout(window._s);window._s=setTimeout(()=>{pageSuppliers();const i=$('#sq');i.focus();i.setSelectionRange(99,99)},300)};
+  $('#sc').onchange=e=>{supF.cat=e.target.value;pageSuppliers()};$('#ss').onchange=e=>{supF.status=e.target.value;pageSuppliers()};
+  const setSt=(id,st)=>{supplier(id).status=st;const u=supUser(id);if(u)u.status=st;save();pageSuppliers()};
+  $$('[data-blk]').forEach(b=>b.onclick=()=>confirmBox('Заблокировать поставщика?','Поставщик не сможет входить в портал.','Заблокировать',()=>setSt(b.dataset.blk,'blocked'),true));
+  $$('[data-unb]').forEach(b=>b.onclick=()=>setSt(b.dataset.unb,'active'));
+  $('#addSup').onclick=()=>modal(`<h2>Добавить поставщика</h2><p class="small muted">Поставщик получит приглашение на регистрацию по e-mail.</p><label class="f"><span>Наименование *</span><input id="an"></label><label class="f"><span>E-mail *</span><input id="ae" type="email"></label>
+   <div class="f"><span class="small muted">Направления *</span><div>${DB.cats.map(c=>`<label style="display:flex;gap:6px;padding:2px 0"><input type="checkbox" value="${c.id}">${esc(c.name)}</label>`).join('')}</div></div><span class="err-text" id="aerr"></span>
+   <div class="row"><button class="sec" data-close>Отмена</button><button id="ok">Отправить приглашение</button></div>`,(m,close)=>{$('#ok',m).onclick=()=>{const n=$('#an',m).value.trim(),e=$('#ae',m).value.trim().toLowerCase(),c=$$('input[type=checkbox]:checked',m).map(x=>x.value);
+    if(!n||!/^\S+@\S+\.\S+$/.test(e)||!c.length){$('#aerr',m).textContent='Заполните наименование, корректный e-mail и направления';return}
+    if(DB.suppliers.some(s=>s.email===e)){$('#aerr',m).textContent='Поставщик с таким e-mail уже есть';return}
+    DB.suppliers.push({id:'s'+uid(),inn:'',shortName:n,fullName:n,cats:c,contact:'—',phone:'',email:e,status:'pending',created:now(),manual:true});audit('Добавлен поставщик',n);save();close();toast('Приглашение на регистрацию отправлено на '+e,'ok');pageSuppliers()}});
+}
+function pageModeration(){
+  const list=DB.suppliers.filter(s=>s.status==='pending');
+  const html=`<div class="page-head"><h1>Модерация регистраций</h1></div>${list.length?list.map(s=>`<div class="card" style="margin-bottom:12px"><div class="row"><h2 style="margin:0">${esc(s.shortName)}</h2><span class="badge b-amber">На модерации</span><div class="sp"></div><button class="sec" data-rej="${s.id}">Отклонить</button><button data-ok="${s.id}">Подтвердить</button></div>
+   <dl class="kv" style="margin-top:12px"><dt>Полное наименование</dt><dd>${esc(s.fullName)}</dd><dt>ИНН / КПП / ОГРН</dt><dd>${s.inn||'—'} / ${s.kpp||'—'} / ${s.ogrn||'—'}</dd><dt>Адрес</dt><dd>${esc(s.address||'—')}</dd><dt>Контакт</dt><dd>${esc(s.contact)}, ${esc(s.phone)}, ${esc(s.email)}</dd><dt>Направления</dt><dd class="chips">${s.cats.map(c=>`<span>${esc(cat(c).name)}</span>`).join('')}</dd><dt>Дата заявки</dt><dd>${fdt(s.created)}</dd></dl></div>`).join(''):'<div class="card empty">Нет регистраций, ожидающих подтверждения</div>'}`;
+  $('#app').innerHTML=shell(html,'mod');bindShell();
+  $$('[data-ok]').forEach(b=>b.onclick=()=>{const s=supplier(b.dataset.ok);s.status='active';const u=supUser(s.id);if(u){u.status='active';notify(u.id,'Регистрация подтверждена')}audit('Модерация: подтверждён',s.shortName);save();toast(`${s.shortName} подтверждён; письмо отправлено`,'ok');pageModeration()});
+  $$('[data-rej]').forEach(b=>b.onclick=()=>confirmBox('Отклонить регистрацию?','Поставщик получит письмо об отказе.','Отклонить',()=>{const s=supplier(b.dataset.rej);s.status='rejected';const u=supUser(s.id);if(u)u.status='rejected';audit('Модерация: отклонён',s.shortName);save();pageModeration()},true));
+}
+
+/* ===== Профиль ===== */
+function pageProfile(){
+  const u=me();const s=u.supplierId&&supplier(u.supplierId);
+  const html=`<div class="page-head"><h1>Профиль</h1></div><div class="grid2" style="gap:16px">
+  <div class="card"><h2>${s?'Реквизиты и контакты':'Личные данные'}</h2><form id="pf">${s?`<label class="f"><span>Краткое наименование</span><input name="shortName" value="${esc(s.shortName)}"></label><label class="f"><span>Полное наименование</span><input name="fullName" value="${esc(s.fullName)}"></label>
+   <div class="grid2"><label class="f"><span>ИНН</span><input value="${s.inn}" disabled></label><label class="f"><span>КПП</span><input name="kpp" value="${esc(s.kpp||'')}"></label></div><label class="f"><span>Юридический адрес</span><input name="address" value="${esc(s.address||'')}"></label>
+   <div class="grid2"><label class="f"><span>Контактное лицо</span><input name="contact" value="${esc(s.contact)}"></label><label class="f"><span>Телефон</span><input name="phone" value="${esc(s.phone)}"></label></div>
+   <div class="f"><span class="small muted">Направления (изменение — с повторной модерацией)</span><div>${DB.cats.map(c=>`<label style="display:inline-flex;gap:6px;margin-right:12px"><input type="checkbox" name="cats" value="${c.id}" ${s.cats.includes(c.id)?'checked':''}>${esc(c.name)}</label>`).join('')}</div></div>`
+   :`<label class="f"><span>ФИО</span><input name="name" value="${esc(u.name)}"></label><label class="f"><span>Должность</span><input name="position" value="${esc(u.position||'')}"></label><label class="f"><span>Телефон</span><input name="phone" value="${esc(u.phone||'')}"></label>`}
+   <label class="f"><span>E-mail</span><input value="${esc(u.email)}" disabled></label><button>Сохранить</button></form></div>
+  <div class="card" style="align-self:start"><h2>Смена пароля</h2><form id="pw"><label class="f"><span>Текущий пароль</span><input type="password" name="old"></label><label class="f"><span>Новый пароль</span><input type="password" name="n1"></label><label class="f"><span>Повторите</span><input type="password" name="n2"></label><span class="err-text" id="pwe"></span><br><button>Сменить пароль</button></form></div></div>`;
+  $('#app').innerHTML=shell(html,s?'prof':'');bindShell();
+  $('#pf').onsubmit=e=>{e.preventDefault();const f=e.target;if(s){['shortName','fullName','kpp','address','contact','phone'].forEach(k=>s[k]=f[k].value.trim());const nc=$$('[name=cats]:checked',f).map(x=>x.value);
+    if(nc.sort().join()!==[...s.cats].sort().join()){if(!nc.length)return toast('Нужно хотя бы одно направление','err');s.cats=nc;toast('Изменение направлений отправлено на модерацию')}u.name=s.contact}else{u.name=f.name.value;u.position=f.position.value;u.phone=f.phone.value}save();toast('Профиль сохранён','ok');pageProfile()};
+  $('#pw').onsubmit=e=>{e.preventDefault();const f=e.target;const er=f.old.value!==u.pass?'Неверный текущий пароль':!(f.n1.value.length>=8&&/\d/.test(f.n1.value)&&/[a-zа-я]/i.test(f.n1.value))?'Не менее 8 символов, буквы и цифры':f.n1.value!==f.n2.value?'Пароли не совпадают':'';
+    $('#pwe').textContent=er;if(er)return;u.pass=f.n1.value;save();f.reset();toast('Пароль изменён','ok')};
+}
+
+/* ===== Администрирование ===== */
+function adminTabs(on){return `<div class="page-head"><h1>Администрирование</h1></div><div class="tabs">${[['users','Пользователи ОЦЭ'],['categories','Направления'],['settings','Настройки'],['audit','Журнал аудита']].map(([k,t])=>`<button class="${on===k?'on':''}" onclick="go('/admin/${k}')">${t}</button>`).join('')}</div>`}
+function pageAdmin(sec){
+  let body='';
+  if(sec==='users'){const us=DB.users.filter(u=>u.role!=='supplier');
+    body=`<div class="row" style="margin-bottom:12px"><div class="sp"></div><button id="addU">+ Создать пользователя</button></div><div class="tw"><table><thead><tr><th>ФИО</th><th>E-mail</th><th>Телефон</th><th>Должность</th><th>Роль</th><th>Статус</th><th></th></tr></thead><tbody>
+    ${us.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.phone||'—')}</td><td>${esc(u.position||'—')}</td><td>${u.role==='admin'?'Администратор':'Специалист ОЦЭ'}</td><td><span class="badge ${SST[u.status][1]}">${SST[u.status][0]}</span></td>
+    <td>${u.id!==DB.session?`<button class="txt sm" data-tg="${u.id}">${u.status==='blocked'?'Разблокировать':'Заблокировать'}</button><button class="txt sm" data-rp="${u.id}">Сбросить пароль</button>`:''}</td></tr>`).join('')}</tbody></table></div>`}
+  if(sec==='categories')body=`<div class="row" style="margin-bottom:12px"><div class="sp"></div><button id="addC">+ Добавить направление</button></div><div class="tw"><table><thead><tr><th>Код</th><th>Название</th><th>Ключевые слова для автоопределения</th><th>Активно</th><th></th></tr></thead><tbody>
+    ${DB.cats.map(c=>`<tr><td>${esc(c.code)}</td><td>${esc(c.name)}</td><td class="small">${esc(c.keywords.join(', '))||'—'}</td><td>${c.active?'Да':'Нет'}</td><td><button class="txt sm" data-ec="${c.id}">Изменить</button></td></tr>`).join('')}</tbody></table></div>
+    <div class="card" style="margin-top:16px"><h2>Проверка автоопределения</h2><div class="row"><input id="dt" placeholder="Введите наименование товара, напр. «Картридж HP 59A»" style="max-width:420px"><span id="dr" class="muted"></span></div></div>`;
+  if(sec==='settings'){const s=DB.settings||(DB.settings={org:'АО «Заказчик», ИНН 7700000000',smtp:'smtp.company.ru:587',dadata:'',pdn:'Я даю согласие на обработку моих персональных данных в соответствии с 152-ФЗ.'});
+    body=`<div class="card" style="max-width:760px"><form id="stf"><label class="f"><span>Реквизиты организации-заказчика (для писем)</span><input name="org" value="${esc(s.org)}"></label><label class="f"><span>SMTP-сервер</span><input name="smtp" value="${esc(s.smtp)}"></label>
+    <label class="f"><span>Ключ API DaData (автозаполнение по ИНН)</span><input name="dadata" value="${esc(s.dadata)}" placeholder="не задан — реквизиты вводятся вручную"></label><label class="f"><span>Текст согласия на обработку ПДн</span><textarea name="pdn">${esc(s.pdn)}</textarea></label><button>Сохранить</button></form></div>`}
+  if(sec==='audit')body=`<div class="tw"><table><thead><tr><th>Дата и время</th><th>Пользователь</th><th>Событие</th><th>Детали</th></tr></thead><tbody>${DB.audit.map(a=>`<tr><td>${fdt(a.t)}</td><td>${esc(a.user)}</td><td>${esc(a.action)}</td><td>${esc(a.details)}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">Событий пока нет</td></tr>'}</tbody></table></div>`;
+  $('#app').innerHTML=shell(adminTabs(sec)+body,'adm');bindShell();
+  if(sec==='users'){$$('[data-tg]').forEach(b=>b.onclick=()=>{const u=DB.users.find(x=>x.id===b.dataset.tg);u.status=u.status==='blocked'?'active':'blocked';audit('Изменение пользователя',u.email+' → '+u.status);save();pageAdmin(sec)});
+    $$('[data-rp]').forEach(b=>b.onclick=()=>{const u=DB.users.find(x=>x.id===b.dataset.rp);toast('Ссылка для сброса пароля отправлена на '+u.email,'ok')});
+    $('#addU').onclick=()=>modal(`<h2>Новый пользователь ОЦЭ</h2><label class="f"><span>ФИО *</span><input id="n"></label><label class="f"><span>E-mail *</span><input id="e" type="email"></label><label class="f"><span>Телефон</span><input id="p"></label><label class="f"><span>Должность</span><input id="d"></label>
+     <label class="f"><span>Роль</span><select id="r"><option value="specialist">Специалист ОЦЭ</option><option value="admin">Администратор</option></select></label><span class="err-text" id="er"></span><div class="row"><button class="sec" data-close>Отмена</button><button id="ok">Создать</button></div>`,(m,close)=>{$('#ok',m).onclick=()=>{
+      const n=$('#n',m).value.trim(),e=$('#e',m).value.trim().toLowerCase();if(!n||!/^\S+@\S+\.\S+$/.test(e)){$('#er',m).textContent='Укажите ФИО и корректный e-mail';return}if(DB.users.some(u=>u.email===e)){$('#er',m).textContent='E-mail уже используется';return}
+      const pass='Temp'+Math.floor(1e4+Math.random()*9e4);DB.users.push({id:'u'+uid(),email:e,pass,role:$('#r',m).value,name:n,phone:$('#p',m).value,position:$('#d',m).value,status:'active'});audit('Создан пользователь',e);save();close();
+      modal(`<h2>Пользователь создан</h2><p>Временный пароль для <b>${esc(e)}</b>: <code>${pass}</code><br><span class="small muted">В рабочей версии отправляется на e-mail.</span></p><div class="row"><button data-close>OK</button></div>`);pageAdmin(sec)}})}
+  if(sec==='categories'){const edit=c=>modal(`<h2>${c?'Изменить':'Новое'} направление</h2><label class="f"><span>Код *</span><input id="cc" value="${esc(c?.code||'')}"></label><label class="f"><span>Название *</span><input id="cn" value="${esc(c?.name||'')}"></label><label class="f"><span>Ключевые слова (через запятую)</span><textarea id="ck">${esc(c?.keywords.join(', ')||'')}</textarea></label>
+     <label style="display:flex;gap:8px"><input type="checkbox" id="ca" ${!c||c.active?'checked':''}>Активно</label><div class="row"><button class="sec" data-close>Отмена</button><button id="ok">Сохранить</button></div>`,(m,close)=>{$('#ok',m).onclick=()=>{const code=$('#cc',m).value.trim(),name=$('#cn',m).value.trim();if(!code||!name)return toast('Заполните код и название','err');
+      const kw=$('#ck',m).value.split(',').map(x=>x.trim()).filter(Boolean);if(c)Object.assign(c,{code,name,keywords:kw,active:$('#ca',m).checked});else DB.cats.push({id:code.toUpperCase()+uid().slice(0,3),code,name,keywords:kw,active:$('#ca',m).checked});audit('Справочник направлений',name);save();close();pageAdmin(sec)}});
+    $('#addC').onclick=()=>edit(null);$$('[data-ec]').forEach(b=>b.onclick=()=>edit(cat(b.dataset.ec)));
+    $('#dt').oninput=e=>{const c=detectCat(e.target.value);$('#dr').textContent=e.target.value?(c?'→ '+cat(c).name:'→ направление не определено'):''}}
+  if(sec==='settings')$('#stf').onsubmit=e=>{e.preventDefault();['org','smtp','dadata','pdn'].forEach(k=>DB.settings[k]=e.target[k].value);audit('Изменение настроек');save();toast('Настройки сохранены','ok')};
+}
+
+/* ===== Роутер ===== */
+function render(){
+  parseHash();tick();const p=route.path;window.scrollTo(0,0);
+  if(p==='/register')return pageRegister();if(p==='/reset-password')return pageReset();
+  const u=me();if(!u||u.status!=='active'){DB.session=null;return pageLogin()}
+  if(p==='/login'){go(u.role==='admin'?'/admin/users':'/');return}
+  if(p==='/profile')return pageProfile();
+  if(u.role==='supplier'){const m=p.match(/^\/invitations\/(.+)$/);if(m)return pageInvitation(m[1]);return pageSupHome()}
+  if(p.startsWith('/admin/')){if(u.role!=='admin'){go('/');return}return pageAdmin(p.split('/')[2]||'users')}
+  if(p==='/requests/new')return pageWizard();
+  const m=p.match(/^\/requests\/(.+)$/);if(m){if(window._lastReq!==m[1]){card.tab='cmp';card.cat='';window._lastReq=m[1]}return pageRequest(m[1])}
+  if(p==='/suppliers')return pageSuppliers();if(p==='/suppliers/moderation')return pageModeration();
+  if(p!=='/'){go('/');return}
+  wiz=null;pageDashboard();
+}
+load();save();window.addEventListener('hashchange',render);render();
+setInterval(()=>{const before=JSON.stringify(DB.requests.map(r=>r.status));tick();if(JSON.stringify(DB.requests.map(r=>r.status))!==before)render()},60000);
+</script>
+</body>
+</html>
